@@ -1,0 +1,250 @@
+{
+  "students": [
+    {
+      "student_id": "STU001",
+      "name": "Alex Johnson",
+      "grade": "4",
+      "age": 10,
+      "disability_type": "autism",
+      "learning_style": "visual",
+      "triggers": [
+        "loud noises",
+        "schedule changes",
+        "fire drills",
+        "unexpected transitions",
+        "crowded hallways"
+      ],
+      "successful_methods": [
+        "visual schedules",
+        "fidget tools",
+        "social stories",
+        "advance warnings",
+        "quiet corner access",
+        "clear written instructions"
+      ],
+      "failed_methods": [
+        "group work without support",
+        "verbal-only instructions",
+        "sudden changes to routine"
+      ],
+      "iep_goals": [
+        "Improve social interaction with peers during structured activities",
+        "Use self-regulation strategies when feeling overwhelmed",
+        "Follow multi-step written instructions independently"
+      ],
+      "accommodations": [
+        "Preferential seating away from door",
+        "Written schedule provided daily",
+        "5-minute warning before transitions",
+        "Access to noise-canceling headphones"
+      ],
+      "notes": "Alex responds well to visual cues and needs time to process new information. Excellent in math and science when given visual aids."
+    },
+    {
+      "student_id": "STU002",
+      "name": "Jordan Smith",
+      "grade": "3",
+      "age": 9,
+      "disability_type": "ADHD",
+      "learning_style": "kinesthetic",
+      "triggers": [
+        "long sitting periods",
+        "transitions between activities",
+        "waiting for turn",
+        "boring or repetitive tasks"
+      ],
+      "successful_methods": [
+        "movement breaks every 15 minutes",
+        "hands-on activities",
+        "chunked tasks with clear endpoints",
+        "visual timers",
+        "standing desk option",
+        "fidget tools"
+      ],
+      "failed_methods": [
+        "long lectures",
+        "worksheets without breaks",
+        "sitting for extended periods",
+        "tasks without clear structure"
+      ],
+      "iep_goals": [
+        "Complete assignments within designated time using timer",
+        "Raise hand before speaking 80% of the time",
+        "Stay seated during instruction with movement breaks"
+      ],
+      "accommodations": [
+        "Frequent movement breaks",
+        "Reduced assignment length",
+        "Preferential seating near teacher",
+        "Use of fidget tools during instruction"
+      ],
+      "notes": "Jordan is creative and enthusiastic. Responds well to positive reinforcement and clear expectations. Loves hands-on science experiments."
+    },
+    {
+      "student_id": "STU003",
+      "name": "Taylor Williams",
+      "grade": "5",
+      "age": 11,
+      "disability_type": "dyslexia",
+      "learning_style": "auditory",
+      "triggers": [
+        "reading aloud in front of class",
+        "timed reading tests",
+        "large amounts of text",
+        "unfamiliar vocabulary without context"
+      ],
+      "successful_methods": [
+        "audiobooks",
+        "text-to-speech software",
+        "graphic organizers",
+        "color overlays for reading",
+        "oral testing options",
+        "extended time for reading tasks"
+      ],
+      "failed_methods": [
+        "phonics-only approach",
+        "round-robin reading",
+        "reading-heavy assignments without support",
+        "timed tests"
+      ],
+      "iep_goals": [
+        "Use assistive technology independently for reading tasks",
+        "Demonstrate comprehension through oral responses",
+        "Apply learned reading strategies to new texts"
+      ],
+      "accommodations": [
+        "Audio versions of texts",
+        "Extended time on reading assignments",
+        "Alternative testing formats",
+        "Use of text-to-speech technology"
+      ],
+      "notes": "Taylor has excellent verbal comprehension and creative writing abilities when using speech-to-text. Very strong in verbal discussions and debates."
+    },
+    {
+      "student_id": "STU004",
+      "name": "Morgan Davis",
+      "grade": "2",
+      "age": 8,
+      "disability_type": "sensory_processing",
+      "learning_style": "visual",
+      "triggers": [
+        "bright fluorescent lights",
+        "crowded spaces",
+        "certain textures (especially during art)",
+        "strong smells",
+        "loud unexpected sounds"
+      ],
+      "successful_methods": [
+        "sensory breaks in calm space",
+        "noise-canceling headphones",
+        "weighted lap pad",
+        "dim lighting options",
+        "advance warning about sensory experiences",
+        "choice of materials for tactile activities"
+      ],
+      "failed_methods": [
+        "forced participation in loud activities",
+        "mandatory group activities in crowded spaces",
+        "surprise assemblies or fire drills"
+      ],
+      "iep_goals": [
+        "Identify when feeling overwhelmed and request a break",
+        "Use calming strategies independently",
+        "Participate in classroom activities with appropriate accommodations"
+      ],
+      "accommodations": [
+        "Access to quiet space when needed",
+        "Alternative lighting when available",
+        "Sensory toolkit in desk",
+        "Option to skip or modify sensory-heavy activities"
+      ],
+      "notes": "Morgan is a thoughtful student who excels in one-on-one settings. Shows great empathy for others and strong artistic abilities."
+    },
+    {
+      "student_id": "STU005",
+      "name": "Casey Brown",
+      "grade": "3",
+      "age": 9,
+      "disability_type": "autism",
+      "learning_style": "visual",
+      "triggers": [
+        "unstructured time",
+        "ambiguous instructions",
+        "changes in routine",
+        "social misunderstandings"
+      ],
+      "successful_methods": [
+        "visual task boards",
+        "structured choice activities",
+        "explicit social skill instruction",
+        "predictable routines",
+        "one-on-one check-ins",
+        "special interest integration"
+      ],
+      "failed_methods": [
+        "open-ended assignments",
+        "implied social expectations",
+        "last-minute changes"
+      ],
+      "iep_goals": [
+        "Follow visual schedule with minimal prompts",
+        "Engage in cooperative play with one peer",
+        "Ask for clarification when confused"
+      ],
+      "accommodations": [
+        "Visual schedule and task breakdown",
+        "Advance notice of any changes",
+        "Structured peer interaction support",
+        "Clear, explicit instructions"
+      ],
+      "notes": "Casey has a passionate interest in trains and space. Integrating these interests into lessons dramatically increases engagement."
+    },
+    {
+      "student_id": "STU006",
+      "name": "Riley Martinez",
+      "grade": "4",
+      "age": 10,
+      "disability_type": "emotional_behavioral",
+      "learning_style": "kinesthetic",
+      "triggers": [
+        "perceived unfairness",
+        "public correction",
+        "feeling ignored",
+        "conflicts with peers",
+        "frustration with difficult tasks"
+      ],
+      "successful_methods": [
+        "private redirection",
+        "choice-based consequences",
+        "regular check-ins",
+        "cool-down space access",
+        "behavior charts with rewards",
+        "relationship-building one-on-ones"
+      ],
+      "failed_methods": [
+        "public reprimands",
+        "punitive consequences without discussion",
+        "power struggles",
+        "ignoring warning signs"
+      ],
+      "iep_goals": [
+        "Use coping strategies when frustrated 4/5 times",
+        "Accept feedback without escalation",
+        "Resolve peer conflicts with adult support"
+      ],
+      "accommodations": [
+        "Access to cool-down space",
+        "Daily check-ins with trusted adult",
+        "Modified discipline approach",
+        "Break passes when needed"
+      ],
+      "notes": "Riley responds extremely well to adults who show genuine interest. Has natural leadership abilities when channeled positively."
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created": "2026-02-01",
+    "description": "Sample student profiles for Co-Teacher AI system",
+    "note": "This is sample data for demonstration purposes only. No real student information is included."
+  }
+}

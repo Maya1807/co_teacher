@@ -1,0 +1,516 @@
+{
+  "weekly_schedule": {
+    "monday": [
+      {
+        "id": "math-mon",
+        "title": "Math Class",
+        "type": "class",
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "sensory_factors": {
+          "requires_focus": true,
+          "seated_work": true
+        }
+      },
+      {
+        "id": "science-mon",
+        "title": "Science Class",
+        "type": "class",
+        "start_time": "10:15",
+        "end_time": "11:15",
+        "sensory_factors": {
+          "hands_on_activity": true,
+          "group_work": true
+        }
+      },
+      {
+        "id": "reading-mon",
+        "title": "Reading Class",
+        "type": "class",
+        "start_time": "11:30",
+        "end_time": "12:15",
+        "sensory_factors": {
+          "quiet_environment": true,
+          "seated_work": true
+        }
+      },
+      {
+        "id": "art-mon",
+        "title": "Art Class",
+        "type": "class",
+        "start_time": "13:00",
+        "end_time": "14:00",
+        "sensory_factors": {
+          "hands_on_activity": true,
+          "sensory_materials": true,
+          "creative_expression": true
+        }
+      },
+      {
+        "id": "pe-mon",
+        "title": "PE Class",
+        "type": "class",
+        "start_time": "14:15",
+        "end_time": "15:00",
+        "sensory_factors": {
+          "physical_activity": true,
+          "loud_environment": true,
+          "competitive": true
+        }
+      },
+      {
+        "id": "one-on-one-mon",
+        "title": "One-on-One: Alex",
+        "type": "one_on_one",
+        "student": "Alex",
+        "start_time": "15:15",
+        "end_time": "15:45",
+        "sensory_factors": {
+          "quiet_environment": true,
+          "individual_attention": true
+        }
+      },
+      {
+        "id": "staff-meeting-mon",
+        "title": "Weekly Staff Meeting",
+        "type": "meeting",
+        "start_time": "16:00",
+        "end_time": "17:00",
+        "recurring": "weekly",
+        "notes": "Team coordination, student updates, scheduling"
+      },
+      {
+        "id": "planning-mon",
+        "title": "Planning Time",
+        "type": "planning",
+        "start_time": "08:00",
+        "end_time": "08:45",
+        "tasks": ["lesson_planning", "accommodations_planning"]
+      }
+    ],
+    "tuesday": [
+      {
+        "id": "math-tue",
+        "title": "Math Class",
+        "type": "class",
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "sensory_factors": {
+          "requires_focus": true,
+          "seated_work": true
+        }
+      },
+      {
+        "id": "science-tue",
+        "title": "Science Class",
+        "type": "class",
+        "start_time": "10:15",
+        "end_time": "11:15",
+        "sensory_factors": {
+          "hands_on_activity": true,
+          "group_work": true
+        }
+      },
+      {
+        "id": "reading-tue",
+        "title": "Reading Class",
+        "type": "class",
+        "start_time": "11:30",
+        "end_time": "12:15",
+        "sensory_factors": {
+          "quiet_environment": true,
+          "seated_work": true
+        }
+      },
+      {
+        "id": "art-tue",
+        "title": "Art Class",
+        "type": "class",
+        "start_time": "13:00",
+        "end_time": "14:00",
+        "sensory_factors": {
+          "hands_on_activity": true,
+          "sensory_materials": true,
+          "creative_expression": true
+        }
+      },
+      {
+        "id": "pe-tue",
+        "title": "PE Class",
+        "type": "class",
+        "start_time": "14:15",
+        "end_time": "15:00",
+        "sensory_factors": {
+          "physical_activity": true,
+          "loud_environment": true,
+          "competitive": true
+        }
+      },
+      {
+        "id": "one-on-one-tue",
+        "title": "One-on-One: Jordan",
+        "type": "one_on_one",
+        "student": "Jordan",
+        "start_time": "15:15",
+        "end_time": "15:45",
+        "sensory_factors": {
+          "quiet_environment": true,
+          "individual_attention": true
+        }
+      },
+      {
+        "id": "planning-tue",
+        "title": "Planning Time",
+        "type": "planning",
+        "start_time": "08:00",
+        "end_time": "08:45",
+        "tasks": ["lesson_planning", "accommodations_planning"]
+      }
+    ],
+    "wednesday": [
+      {
+        "id": "math-wed",
+        "title": "Math Class",
+        "type": "class",
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "sensory_factors": {
+          "requires_focus": true,
+          "seated_work": true
+        }
+      },
+      {
+        "id": "science-wed",
+        "title": "Science Class",
+        "type": "class",
+        "start_time": "10:15",
+        "end_time": "11:15",
+        "sensory_factors": {
+          "hands_on_activity": true,
+          "group_work": true
+        }
+      },
+      {
+        "id": "reading-wed",
+        "title": "Reading Class",
+        "type": "class",
+        "start_time": "11:30",
+        "end_time": "12:15",
+        "sensory_factors": {
+          "quiet_environment": true,
+          "seated_work": true
+        }
+      },
+      {
+        "id": "art-wed",
+        "title": "Art Class",
+        "type": "class",
+        "start_time": "13:00",
+        "end_time": "14:00",
+        "sensory_factors": {
+          "hands_on_activity": true,
+          "sensory_materials": true,
+          "creative_expression": true
+        }
+      },
+      {
+        "id": "pe-wed",
+        "title": "PE Class",
+        "type": "class",
+        "start_time": "14:15",
+        "end_time": "15:00",
+        "sensory_factors": {
+          "physical_activity": true,
+          "loud_environment": true,
+          "competitive": true
+        }
+      },
+      {
+        "id": "one-on-one-wed",
+        "title": "One-on-One: Sam",
+        "type": "one_on_one",
+        "student": "Sam",
+        "start_time": "15:15",
+        "end_time": "15:45",
+        "sensory_factors": {
+          "quiet_environment": true,
+          "individual_attention": true
+        }
+      },
+      {
+        "id": "planning-wed",
+        "title": "Planning Time",
+        "type": "planning",
+        "start_time": "08:00",
+        "end_time": "08:45",
+        "tasks": ["lesson_planning", "accommodations_planning"]
+      }
+    ],
+    "thursday": [
+      {
+        "id": "math-thu",
+        "title": "Math Class",
+        "type": "class",
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "sensory_factors": {
+          "requires_focus": true,
+          "seated_work": true
+        }
+      },
+      {
+        "id": "science-thu",
+        "title": "Science Class",
+        "type": "class",
+        "start_time": "10:15",
+        "end_time": "11:15",
+        "sensory_factors": {
+          "hands_on_activity": true,
+          "group_work": true
+        }
+      },
+      {
+        "id": "reading-thu",
+        "title": "Reading Class",
+        "type": "class",
+        "start_time": "11:30",
+        "end_time": "12:15",
+        "sensory_factors": {
+          "quiet_environment": true,
+          "seated_work": true
+        }
+      },
+      {
+        "id": "art-thu",
+        "title": "Art Class",
+        "type": "class",
+        "start_time": "13:00",
+        "end_time": "14:00",
+        "sensory_factors": {
+          "hands_on_activity": true,
+          "sensory_materials": true,
+          "creative_expression": true
+        }
+      },
+      {
+        "id": "pe-thu",
+        "title": "PE Class",
+        "type": "class",
+        "start_time": "14:15",
+        "end_time": "15:00",
+        "sensory_factors": {
+          "physical_activity": true,
+          "loud_environment": true,
+          "competitive": true
+        }
+      },
+      {
+        "id": "one-on-one-thu",
+        "title": "One-on-One: Maya",
+        "type": "one_on_one",
+        "student": "Maya",
+        "start_time": "15:15",
+        "end_time": "15:45",
+        "sensory_factors": {
+          "quiet_environment": true,
+          "individual_attention": true
+        }
+      },
+      {
+        "id": "parent-emails-thu",
+        "title": "Weekly Parent Update Emails",
+        "type": "communication",
+        "start_time": "16:00",
+        "end_time": "17:00",
+        "recurring": "weekly",
+        "tasks": ["weekly_updates", "behavior_notes", "upcoming_events"]
+      },
+      {
+        "id": "planning-thu",
+        "title": "Planning Time",
+        "type": "planning",
+        "start_time": "08:00",
+        "end_time": "08:45",
+        "tasks": ["lesson_planning", "accommodations_planning"]
+      }
+    ],
+    "friday": [
+      {
+        "id": "math-fri",
+        "title": "Math Class",
+        "type": "class",
+        "start_time": "09:00",
+        "end_time": "10:00",
+        "sensory_factors": {
+          "requires_focus": true,
+          "seated_work": true
+        }
+      },
+      {
+        "id": "science-fri",
+        "title": "Science Class",
+        "type": "class",
+        "start_time": "10:15",
+        "end_time": "11:15",
+        "sensory_factors": {
+          "hands_on_activity": true,
+          "group_work": true
+        }
+      },
+      {
+        "id": "reading-fri",
+        "title": "Reading Class",
+        "type": "class",
+        "start_time": "11:30",
+        "end_time": "12:15",
+        "sensory_factors": {
+          "quiet_environment": true,
+          "seated_work": true
+        }
+      },
+      {
+        "id": "art-fri",
+        "title": "Art Class",
+        "type": "class",
+        "start_time": "13:00",
+        "end_time": "14:00",
+        "sensory_factors": {
+          "hands_on_activity": true,
+          "sensory_materials": true,
+          "creative_expression": true
+        }
+      },
+      {
+        "id": "pe-fri",
+        "title": "PE Class",
+        "type": "class",
+        "start_time": "14:15",
+        "end_time": "15:00",
+        "sensory_factors": {
+          "physical_activity": true,
+          "loud_environment": true,
+          "competitive": true
+        }
+      },
+      {
+        "id": "one-on-one-fri",
+        "title": "One-on-One: Ethan",
+        "type": "one_on_one",
+        "student": "Ethan",
+        "start_time": "15:15",
+        "end_time": "15:45",
+        "sensory_factors": {
+          "quiet_environment": true,
+          "individual_attention": true
+        }
+      },
+      {
+        "id": "planning-fri",
+        "title": "Planning Time",
+        "type": "planning",
+        "start_time": "08:00",
+        "end_time": "08:45",
+        "tasks": ["lesson_planning", "accommodations_planning"]
+      }
+    ]
+  },
+
+  "monthly_schedule": {
+    "week_1": [
+      {
+        "id": "principal-meeting-monthly",
+        "title": "Monthly Meeting with Principal",
+        "type": "meeting",
+        "recurring": "monthly",
+        "preferred_day": "tuesday",
+        "start_time": "15:30",
+        "end_time": "16:15",
+        "notes": "Student progress updates, resource needs, upcoming events coordination"
+      }
+    ],
+    "week_2": [
+      {
+        "id": "parent-checkin-monthly",
+        "title": "Monthly Parent Check-ins",
+        "type": "communication",
+        "recurring": "monthly",
+        "preferred_days": ["tuesday", "wednesday", "thursday"],
+        "tasks": [
+          "send_monthly_checkin_messages",
+          "share_wins_and_focus_areas",
+          "coordinate_on_triggers",
+          "discuss_sleep_med_routine_changes"
+        ],
+        "notes": "Not all students - prioritize those with recent changes or concerns",
+        "target_students": "selected_students_with_needs"
+      }
+    ]
+  },
+
+  "quarterly_schedule": {
+    "end_of_quarter": [
+      {
+        "id": "iep-progress-reporting",
+        "title": "IEP Progress Reporting",
+        "type": "reporting",
+        "recurring": "quarterly",
+        "duration_days": 5,
+        "tasks": [
+          "review_iep_goals_for_each_student",
+          "document_progress_on_goals",
+          "update_baseline_to_current_levels",
+          "prepare_progress_summaries"
+        ],
+        "description": "The quarterly check-in on IEP goal progress for all students"
+      },
+      {
+        "id": "progress-reports",
+        "title": "Write Progress Reports",
+        "type": "reporting",
+        "recurring": "quarterly",
+        "duration_days": 3,
+        "tasks": [
+          "write_progress_reports",
+          "align_with_report_card_periods",
+          "summarize_quarterly_iep_progress",
+          "provide_updated_levels_baseline_to_now"
+        ],
+        "notes": "Often aligned with school report card periods"
+      },
+      {
+        "id": "next-term-planning",
+        "title": "Planning for Next Term",
+        "type": "planning",
+        "recurring": "quarterly",
+        "duration_days": 3,
+        "tasks": [
+          "review_what_worked_this_quarter",
+          "adjust_strategies_and_accommodations",
+          "set_goals_for_next_quarter",
+          "plan_curriculum_adjustments",
+          "coordinate_with_support_staff"
+        ],
+        "description": "Strategic planning session for the upcoming term"
+      }
+    ]
+  },
+
+  "metadata": {
+    "version": "1.0",
+    "created": "2026-02-03",
+    "description": "Recurring schedules for special education classroom management",
+    "schedule_types": {
+      "weekly": "Events that repeat every week on specific days",
+      "monthly": "Events that occur once per month",
+      "quarterly": "Events that occur at the end of each academic quarter"
+    },
+    "event_types": {
+      "class": "Regular classroom instruction",
+      "one_on_one": "Individual student sessions",
+      "meeting": "Staff or administrative meetings",
+      "communication": "Parent/family communication tasks",
+      "planning": "Lesson and accommodation planning",
+      "reporting": "Progress reports and IEP documentation"
+    }
+  }
+}

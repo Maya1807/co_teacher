@@ -1,0 +1,408 @@
+{
+  "categories": [
+    {
+      "id": "autism",
+      "name": "Autism Spectrum Disorder",
+      "description": "Evidence-based strategies for supporting students with autism spectrum disorder",
+      "methods": [
+        {
+          "id": "visual_supports",
+          "name": "Visual Supports",
+          "description": "Use of visual aids to support understanding and communication",
+          "techniques": [
+            "Visual schedules showing daily activities",
+            "Picture Exchange Communication System (PECS)",
+            "Visual task analysis for multi-step activities",
+            "First-Then boards for transitions",
+            "Visual timers for time management"
+          ],
+          "when_to_use": "Throughout the day, especially during transitions and new activities",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "social_stories",
+          "name": "Social Stories",
+          "description": "Short narratives describing social situations and appropriate responses",
+          "techniques": [
+            "Create personalized stories for specific situations",
+            "Include perspectives of others",
+            "Review before challenging situations",
+            "Use first-person perspective",
+            "Include visual supports"
+          ],
+          "when_to_use": "Before new situations, to address social challenges, during calm moments",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "structured_routines",
+          "name": "Structured Routines",
+          "description": "Consistent, predictable classroom routines and procedures",
+          "techniques": [
+            "Consistent daily schedule",
+            "Clear classroom procedures",
+            "Advance warning before transitions",
+            "Same sequence for routine activities",
+            "Minimize unexpected changes"
+          ],
+          "when_to_use": "Implemented consistently throughout the school day",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "sensory_accommodations",
+          "name": "Sensory Accommodations",
+          "description": "Environmental and tool-based supports for sensory needs",
+          "techniques": [
+            "Quiet workspace option",
+            "Noise-canceling headphones",
+            "Fidget tools",
+            "Movement breaks",
+            "Reduced visual clutter",
+            "Alternative lighting when possible"
+          ],
+          "when_to_use": "Based on individual sensory profile and as preventive measure",
+          "evidence_level": "Moderate research support"
+        },
+        {
+          "id": "special_interests",
+          "name": "Special Interest Integration",
+          "description": "Incorporating student's passionate interests into learning",
+          "techniques": [
+            "Use interests in examples and problems",
+            "Allow topic choice when possible",
+            "Create rewards connected to interests",
+            "Build relationships through shared interest discussions"
+          ],
+          "when_to_use": "To increase engagement and motivation",
+          "evidence_level": "Moderate research support"
+        }
+      ]
+    },
+    {
+      "id": "adhd",
+      "name": "Attention-Deficit/Hyperactivity Disorder",
+      "description": "Strategies for supporting students with ADHD",
+      "methods": [
+        {
+          "id": "movement_integration",
+          "name": "Movement Integration",
+          "description": "Incorporating physical movement into learning activities",
+          "techniques": [
+            "Brain breaks every 15-20 minutes",
+            "Standing desk options",
+            "Movement-based learning games",
+            "Errands and classroom jobs",
+            "Stretch breaks between activities"
+          ],
+          "when_to_use": "Proactively scheduled throughout instruction",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "task_chunking",
+          "name": "Task Chunking",
+          "description": "Breaking larger tasks into smaller, manageable pieces",
+          "techniques": [
+            "Divide assignments into clear steps",
+            "Check in after each chunk",
+            "Provide mini-deadlines",
+            "Use checklists for multi-step tasks",
+            "Celebrate chunk completion"
+          ],
+          "when_to_use": "For any multi-step or lengthy assignment",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "visual_timers",
+          "name": "Visual Timers",
+          "description": "Using timers to help with time awareness and task completion",
+          "techniques": [
+            "Time Timer showing elapsed/remaining time visually",
+            "Countdown timers for transitions",
+            "Work periods with visible time limits",
+            "Timer-based challenges for motivation"
+          ],
+          "when_to_use": "During work periods, transitions, and timed activities",
+          "evidence_level": "Moderate research support"
+        },
+        {
+          "id": "frequent_feedback",
+          "name": "Frequent Feedback",
+          "description": "Providing immediate and regular positive reinforcement",
+          "techniques": [
+            "Specific praise for on-task behavior",
+            "Non-verbal acknowledgment",
+            "Token economy systems",
+            "Progress monitoring visible to student",
+            "Immediate feedback on work"
+          ],
+          "when_to_use": "Continuously during instruction and work time",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "fidget_tools",
+          "name": "Fidget Tools",
+          "description": "Allowing appropriate movement tools during instruction",
+          "techniques": [
+            "Stress balls or putty",
+            "Fidget spinners (non-distracting)",
+            "Resistance bands on chair legs",
+            "Velcro strip under desk",
+            "Quiet fidget toys"
+          ],
+          "when_to_use": "During seated instruction and independent work",
+          "evidence_level": "Moderate research support"
+        }
+      ]
+    },
+    {
+      "id": "learning_disabilities",
+      "name": "Learning Disabilities",
+      "description": "Strategies for students with dyslexia, dyscalculia, and other learning disabilities",
+      "methods": [
+        {
+          "id": "multisensory_instruction",
+          "name": "Multi-Sensory Instruction",
+          "description": "Engaging multiple senses simultaneously in learning",
+          "techniques": [
+            "Orton-Gillingham approach for reading",
+            "Say-write-visualize for spelling",
+            "Manipulatives for math concepts",
+            "Combining visual, auditory, and kinesthetic learning",
+            "Hands-on demonstrations"
+          ],
+          "when_to_use": "During initial instruction and remediation",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "graphic_organizers",
+          "name": "Graphic Organizers",
+          "description": "Visual frameworks for organizing information and thinking",
+          "techniques": [
+            "Concept maps for relationships",
+            "Story maps for reading comprehension",
+            "Venn diagrams for comparison",
+            "Flowcharts for sequences",
+            "Note-taking templates"
+          ],
+          "when_to_use": "Before, during, and after learning new content",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "assistive_technology",
+          "name": "Assistive Technology",
+          "description": "Technology tools to support learning challenges",
+          "techniques": [
+            "Text-to-speech software",
+            "Speech-to-text for writing",
+            "Audiobooks and recorded materials",
+            "Calculator use for higher math",
+            "Word prediction software",
+            "Digital highlighters and annotation tools"
+          ],
+          "when_to_use": "Based on individual needs and IEP specifications",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "extended_time",
+          "name": "Extended Time",
+          "description": "Providing additional time for task completion",
+          "techniques": [
+            "Time-and-a-half or double time on tests",
+            "Flexible deadlines for assignments",
+            "Reduced assignment length as alternative",
+            "Separate testing location to reduce time pressure"
+          ],
+          "when_to_use": "For reading-heavy tasks, tests, and complex assignments",
+          "evidence_level": "Strong research support"
+        }
+      ]
+    },
+    {
+      "id": "sensory_processing",
+      "name": "Sensory Processing Disorder",
+      "description": "Strategies for students with sensory processing challenges",
+      "methods": [
+        {
+          "id": "sensory_diet",
+          "name": "Sensory Diet",
+          "description": "Planned sensory activities throughout the day",
+          "techniques": [
+            "Scheduled movement breaks",
+            "Heavy work activities (pushing, pulling, carrying)",
+            "Calming activities before difficult times",
+            "Alerting activities when drowsy",
+            "Proprioceptive input activities"
+          ],
+          "when_to_use": "Proactively scheduled, often with OT input",
+          "evidence_level": "Moderate research support"
+        },
+        {
+          "id": "environmental_modifications",
+          "name": "Environmental Modifications",
+          "description": "Adapting the physical environment to reduce sensory challenges",
+          "techniques": [
+            "Reduce fluorescent lighting when possible",
+            "Provide quiet workspace options",
+            "Minimize visual clutter",
+            "Control noise levels",
+            "Offer alternative seating options"
+          ],
+          "when_to_use": "As preventive environmental setup",
+          "evidence_level": "Moderate research support"
+        },
+        {
+          "id": "calming_strategies",
+          "name": "Self-Regulation Strategies",
+          "description": "Teaching students to recognize and manage their sensory needs",
+          "techniques": [
+            "Identify personal signs of dysregulation",
+            "Create a sensory toolkit",
+            "Practice deep breathing",
+            "Use a calm-down space appropriately",
+            "Request breaks before crisis"
+          ],
+          "when_to_use": "Taught proactively, used as needed",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "sensory_tools",
+          "name": "Sensory Tools",
+          "description": "Providing access to appropriate sensory tools",
+          "techniques": [
+            "Weighted lap pad or vest",
+            "Noise-canceling headphones",
+            "Chewable jewelry or tools",
+            "Compression clothing",
+            "Textured materials for tactile input"
+          ],
+          "when_to_use": "Based on occupational therapy recommendations",
+          "evidence_level": "Moderate research support"
+        }
+      ]
+    },
+    {
+      "id": "emotional_behavioral",
+      "name": "Emotional and Behavioral Disorders",
+      "description": "Strategies for students with emotional and behavioral challenges",
+      "methods": [
+        {
+          "id": "positive_behavior_support",
+          "name": "Positive Behavior Support",
+          "description": "Proactive, positive approach to behavior management",
+          "techniques": [
+            "Clear expectations taught explicitly",
+            "Positive reinforcement for desired behaviors",
+            "4:1 ratio of positive to corrective feedback",
+            "Behavior contracts with student input",
+            "Token economies when appropriate"
+          ],
+          "when_to_use": "Consistently throughout the school day",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "relationship_building",
+          "name": "Relationship Building",
+          "description": "Intentionally developing positive relationships with students",
+          "techniques": [
+            "2x10 strategy (2 minutes personal conversation for 10 days)",
+            "Greet students by name",
+            "Show genuine interest in their lives",
+            "Find common ground",
+            "Maintain relationship during correction"
+          ],
+          "when_to_use": "Ongoing, especially important at start of year/placement",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "de_escalation",
+          "name": "De-escalation Strategies",
+          "description": "Techniques for preventing and reducing behavioral escalation",
+          "techniques": [
+            "Recognize early warning signs",
+            "Provide space and reduce demands",
+            "Use calm, quiet voice",
+            "Offer choices when possible",
+            "Avoid power struggles",
+            "Private rather than public correction"
+          ],
+          "when_to_use": "At first signs of agitation, before crisis",
+          "evidence_level": "Strong research support"
+        },
+        {
+          "id": "calm_space",
+          "name": "Cool-Down Space",
+          "description": "Designated area for students to regain composure",
+          "techniques": [
+            "Non-punitive space for self-regulation",
+            "Calming tools available",
+            "Clear procedure for use",
+            "Re-entry process defined",
+            "Student helps design/choose location"
+          ],
+          "when_to_use": "When student needs to regulate before continuing",
+          "evidence_level": "Moderate research support"
+        },
+        {
+          "id": "coping_skills",
+          "name": "Coping Skills Instruction",
+          "description": "Explicitly teaching emotional regulation strategies",
+          "techniques": [
+            "Deep breathing exercises",
+            "Counting or grounding techniques",
+            "Positive self-talk",
+            "Identifying emotions using tools/scales",
+            "Problem-solving steps"
+          ],
+          "when_to_use": "Taught during calm times, prompted when needed",
+          "evidence_level": "Strong research support"
+        }
+      ]
+    }
+  ],
+  "general_strategies": [
+    {
+      "id": "universal_design",
+      "name": "Universal Design for Learning",
+      "description": "Flexible approaches that accommodate all learners",
+      "key_principles": [
+        "Multiple means of engagement",
+        "Multiple means of representation",
+        "Multiple means of action and expression"
+      ]
+    },
+    {
+      "id": "explicit_instruction",
+      "name": "Explicit Instruction",
+      "description": "Clear, direct teaching of skills and concepts",
+      "key_principles": [
+        "State learning goals clearly",
+        "Model the skill/process",
+        "Provide guided practice",
+        "Give immediate feedback",
+        "Offer independent practice"
+      ]
+    },
+    {
+      "id": "positive_classroom",
+      "name": "Positive Classroom Environment",
+      "description": "Creating a supportive, inclusive classroom culture",
+      "key_principles": [
+        "Establish clear, consistent expectations",
+        "Celebrate diversity and differences",
+        "Build community through collaboration",
+        "Address bullying and exclusion immediately",
+        "Model respect and empathy"
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created": "2026-02-01",
+    "description": "Teaching methods knowledge base for special education",
+    "sources": [
+      "Council for Exceptional Children",
+      "IRIS Center",
+      "What Works Clearinghouse",
+      "Evidence-based practice literature"
+    ]
+  }
+}

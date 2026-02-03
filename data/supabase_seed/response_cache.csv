@@ -1,0 +1,3 @@
+cache_key,prompt_hash,response,agent_type,expires_at,hit_count
+rag_autism_visual_supports,abc123,"Visual supports are highly effective for students with autism. Key strategies include: 1) Visual schedules showing daily activities, 2) First-Then boards for transitions, 3) Visual timers for time awareness, 4) Picture-based choice boards, 5) Social stories with images.",RAG_AGENT,2025-02-03 09:00:00,5
+rag_adhd_movement_breaks,def456,"Movement breaks help students with ADHD regulate attention and energy. Recommended approaches: 1) 2-minute stretch breaks every 20 minutes, 2) Brain breaks with simple exercises, 3) Standing desks or wiggle cushions, 4) Errand running as purposeful movement, 5) Hands-on manipulatives during instruction.",RAG_AGENT,2025-02-03 14:00:00,3

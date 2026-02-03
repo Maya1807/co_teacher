@@ -1,0 +1,9 @@
+role,content,agent_used,created_at
+user,What strategies work best for Alex?,STUDENT_AGENT,2025-02-01 09:01:00
+assistant,"Based on Alex's profile, visual schedules and fidget tools have been most effective. Alex responds well to advance warnings before transitions and benefits from social stories for new situations.",STUDENT_AGENT,2025-02-01 09:01:15
+user,Tell me about Jordan's triggers,STUDENT_AGENT,2025-02-01 09:05:00
+assistant,"Jordan's main triggers include long sitting periods, transitions between activities, and waiting. Movement breaks and hands-on activities help manage these triggers effectively.",STUDENT_AGENT,2025-02-01 09:05:12
+user,Draft an IEP progress note for Taylor,ADMIN_AGENT,2025-02-01 14:31:00
+assistant,"IEP Progress Note - Taylor Williams
+
+Student has shown significant improvement in reading comprehension when using audiobooks and text-to-speech tools. Color overlays continue to reduce visual stress during reading tasks.",ADMIN_AGENT,2025-02-01 14:31:20

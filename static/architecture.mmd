@@ -1,0 +1,114 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'background': '#FFFFFF',
+    'primaryColor': '#E8F5E9',
+    'primaryTextColor': '#2E7D32',
+    'primaryBorderColor': '#A5D6A7',
+    'lineColor': '#90A4AE',
+    'secondaryColor': '#E3F2FD',
+    'tertiaryColor': '#FFF3E0',
+    'fontFamily': 'Inter, -apple-system, sans-serif',
+    'fontSize': '14px'
+  }
+}}%%
+
+flowchart TB
+    %% API Layer
+    subgraph API["<b>API Layer</b>"]
+        Execute["<b>/api/execute</b><br/><i>Teacher queries</i>"]
+    end
+
+    %% Orchestrator
+    subgraph ORCH["<b>ORCHESTRATOR</b>"]
+        direction TB
+        ORC_MAIN["<b>Orchestrator</b><br/><i>Central Coordinator</i>"]
+
+        subgraph Services["<b>Internal Services</b>"]
+            direction LR
+            CONV["ConversationService"]
+            CTX["ContextResolver"]
+            ROUTER["Router"]
+        end
+
+        subgraph Services2["<b>Execution Services</b>"]
+            direction LR
+            EXEC["AgentExecutor"]
+            COMB["ResponseCombiner"]
+            PRES["Presenter"]
+        end
+    end
+
+    %% Agents
+    subgraph Agents["<b>Specialized Agents</b>"]
+        direction LR
+        SA["<b>STUDENT_AGENT</b><br/><i>Student Profiles</i>"]
+        RA["<b>RAG_AGENT</b><br/><i>Teaching Methods</i>"]
+        AA["<b>ADMIN_AGENT</b><br/><i>Documents</i>"]
+        PA["<b>PREDICT_AGENT</b><br/><i>Daily Briefings</i>"]
+    end
+
+    %% Memory
+    subgraph Memory["<b>Memory Layer</b>"]
+        direction LR
+        SB[("<b>Supabase</b><br/><i>Short-term Memory</i><br/>Conversations<br/>Messages<br/>Daily Context")]
+        PC[("<b>Pinecone</b><br/><i>Long-term Memory</i><br/>Student Profiles<br/>Teaching Methods<br/>Interventions")]
+    end
+
+    %% LLM
+    subgraph LLM["<b>LLM Provider</b>"]
+        LLMOD["<b>LLMod.ai</b><br/><i>gpt-5-mini</i>"]
+    end
+
+    %% Main flow
+    Execute --> ORC_MAIN
+
+    %% Orchestrator to services
+    ORC_MAIN --> Services
+    ORC_MAIN --> Services2
+
+    %% Execution to agents
+    EXEC --> SA & RA & AA & PA
+
+    %% ResponseCombiner to agents (dashed = optional)
+    COMB -.-> SA
+    COMB -.-> RA
+
+    %% Agents to memory
+    SA --> SB & PC
+    RA --> PC
+    AA --> SB
+    PA --> SB
+
+    %% Services to memory
+    CONV --> SB
+    CTX -.-> SA
+
+    %% LLM connections
+    ROUTER -.->|"fallback"| LLMOD
+    SA & RA & AA & PA -->|"LLM calls"| LLMOD
+    COMB & PRES -->|"synthesis"| LLMOD
+
+    %% Styling - Pastel colors with white background
+    classDef apiStyle fill:#E3F2FD,stroke:#64B5F6,stroke-width:2px,color:#1565C0,rx:10
+    classDef orchStyle fill:#E0F7FA,stroke:#4DD0E1,stroke-width:2px,color:#00838F,rx:10
+    classDef serviceStyle fill:#F3E5F5,stroke:#CE93D8,stroke-width:1px,color:#6A1B9A,rx:8
+    classDef agentStyle fill:#E8F5E9,stroke:#81C784,stroke-width:2px,color:#2E7D32,rx:10
+    classDef memoryStyle fill:#FFF3E0,stroke:#FFB74D,stroke-width:2px,color:#E65100,rx:10
+    classDef llmStyle fill:#EDE7F6,stroke:#B39DDB,stroke-width:2px,color:#4527A0,rx:10
+
+    class Execute apiStyle
+    class ORC_MAIN orchStyle
+    class CONV,CTX,ROUTER,EXEC,COMB,PRES serviceStyle
+    class SA,RA,AA,PA agentStyle
+    class SB,PC memoryStyle
+    class LLMOD llmStyle
+
+    %% Subgraph styling
+    style API fill:#F5F5F5,stroke:#BDBDBD,stroke-width:1px,rx:12
+    style ORCH fill:#FAFAFA,stroke:#B2EBF2,stroke-width:2px,rx:12
+    style Services fill:#FFFFFF,stroke:#E1BEE7,stroke-width:1px,rx:8
+    style Services2 fill:#FFFFFF,stroke:#E1BEE7,stroke-width:1px,rx:8
+    style Agents fill:#F1F8E9,stroke:#C5E1A5,stroke-width:2px,rx:12
+    style Memory fill:#FFF8E1,stroke:#FFE082,stroke-width:2px,rx:12
+    style LLM fill:#F3E5F5,stroke:#D1C4E9,stroke-width:2px,rx:12

@@ -1,0 +1,4 @@
+session_id,teacher_id,created_at
+session_demo_001,TEACHER_001,2025-02-01 09:00:00
+session_demo_002,TEACHER_001,2025-02-01 14:30:00
+session_demo_003,TEACHER_002,2025-02-02 08:15:00

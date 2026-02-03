@@ -1,0 +1,35 @@
+# Render deployment configuration
+services:
+  - type: web
+    name: co-teacher
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: LLMOD_API_KEY
+        sync: false
+      - key: LLMOD_BASE_URL
+        value: https://api.llmod.ai/v1
+      - key: LLMOD_CHAT_MODEL
+        value: RPRTHPB-gpt-5-mini
+      - key: LLMOD_EMBEDDING_MODEL
+        value: RPRTHPB-text-embedding-3-small
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: PINECONE_INDEX_NAME
+        value: co-teacher-memory
+      - key: PINECONE_ENVIRONMENT
+        value: us-east-1
+      - key: DEBUG
+        value: "false"
+      - key: BUDGET_LIMIT
+        value: "13.00"
+      - key: BUDGET_WARNING_THRESHOLD
+        value: "10.00"
+    healthCheckPath: /health

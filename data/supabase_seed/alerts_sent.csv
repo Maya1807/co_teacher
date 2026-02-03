@@ -1,0 +1,4 @@
+teacher_id,alert_type,alert_content,student_id,created_at
+TEACHER_001,schedule_change,Fire drill reminder sent - Alex needs preparation,STU001,2025-02-01 08:00:00
+TEACHER_001,behavior_pattern,Noticed increased difficulty with transitions this week for Jordan,STU002,2025-02-01 15:00:00
+TEACHER_002,sensory_alert,Crowded lunch period approaching - Morgan may need quiet space option,STU004,2025-02-01 11:30:00

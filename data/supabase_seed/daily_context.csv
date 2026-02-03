@@ -1,0 +1,6 @@
+teacher_id,date,context_type,student_id,content,is_resolved,priority
+TEACHER_001,2025-02-02,alert,STU001,Fire drill scheduled for 10:30 AM - Alex may need extra preparation and noise-canceling headphones,false,3
+TEACHER_001,2025-02-02,observation,STU002,Jordan had difficulty with morning transition - consider extra movement break before first lesson,false,2
+TEACHER_001,2025-02-02,note,STU003,Taylor successfully used text-to-speech for entire reading assignment - positive progress,true,1
+TEACHER_002,2025-02-02,alert,STU004,Assembly today at 2 PM - Morgan may need sensory break before and after due to crowded auditorium,false,3
+TEACHER_001,2025-02-02,event,STU001,Parent meeting scheduled for Friday to discuss visual schedule updates,false,2

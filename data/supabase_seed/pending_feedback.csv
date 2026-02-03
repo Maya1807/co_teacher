@@ -1,0 +1,4 @@
+teacher_id,action_type,original_suggestion,student_id,status,feedback_notes,resolved_at
+TEACHER_001,strategy_suggestion,Recommended using visual timer for Jordan's task transitions,STU002,resolved,Visual timer worked well - adding to successful methods,2025-02-01 16:00:00
+TEACHER_001,intervention,Suggested noise-canceling headphones for Alex during fire drill,STU001,pending,,
+TEACHER_002,accommodation,Recommended dim lighting option for Morgan's workspace,STU004,resolved,Already have lamp with dimmer - very effective,2025-02-01 14:30:00

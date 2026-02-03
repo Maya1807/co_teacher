@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Co-Teacher - AI Assistant for Special Education</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icon.png">
+</head>
+<body>
+    <div id="app">
+        <!-- CLASS SIDEBAR TOGGLE BUTTON -->
+        <button id="class-toggle-btn" class="class-toggle-btn" onclick="toggleClassSidebar()" aria-label="View class info">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>My Class</span>
+        </button>
+
+        <!-- CLASS SIDEBAR OVERLAY -->
+        <div id="class-overlay" class="overlay left-overlay" onclick="closeClassSidebar()"></div>
+
+        <!-- CLASS SIDEBAR (Left) -->
+        <div id="class-sidebar" class="sidebar left-sidebar">
+            <div class="sidebar-header">
+                <h3 id="class-header-title">My Class</h3>
+                <button class="close-btn" onclick="closeClassSidebar()" aria-label="Close class panel">&times;</button>
+            </div>
+            <div class="sidebar-content">
+                <!-- Daily Predictions Section -->
+                <div id="predictions-section" class="predictions-section collapsed">
+                    <div class="predictions-header" onclick="togglePredictions()">
+                        <div class="predictions-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                            <span>Today's Heads-Up</span>
+                            <span class="info-icon-wrapper" onclick="event.stopPropagation()">
+                                <svg class="info-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="16" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                </svg>
+                                <span class="info-tooltip">Predict &amp; Prevent: Based on each student's known triggers and today's schedule/events, Co-Teacher flags who may be at risk and suggests quick supports to try before it escalates.</span>
+                            </span>
+                            <span class="refresh-btn-wrapper" onclick="event.stopPropagation()">
+                                <button class="refresh-btn" onclick="refreshPredictions(event)">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 4v6h-6"/>
+                                        <path d="M1 20v-6h6"/>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                    </svg>
+                                </button>
+                                <span class="refresh-tooltip">Predictions are generated once per day. Click to refresh if student info or today's schedule changed.</span>
+                            </span>
+                        </div>
+                        <span class="predictions-badge" id="predictions-badge"></span>
+                        <span class="predictions-chevron">▼</span>
+                    </div>
+                    <div class="predictions-content" id="predictions-content">
+                        <div class="predictions-loading">Loading predictions...</div>
+                    </div>
+                </div>
+
+                <!-- Today's Schedule Section -->
+                <div id="schedule-section" class="schedule-section collapsed">
+                    <div class="schedule-header" onclick="toggleSchedule()">
+                        <div class="schedule-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <span>Today's Schedule</span>
+                        </div>
+                        <span class="schedule-badge" id="schedule-badge"></span>
+                        <span class="schedule-chevron">▼</span>
+                    </div>
+                    <div class="schedule-content" id="schedule-content">
+                        <div class="schedule-loading">Loading schedule...</div>
+                    </div>
+                </div>
+
+                <!-- Students Section -->
+                <div id="students-section" class="students-section">
+                    <div class="students-header" onclick="toggleStudents()">
+                        <div class="students-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            <span>Students</span>
+                        </div>
+                        <span class="students-chevron">▼</span>
+                    </div>
+                    <div class="students-content" id="class-sidebar-content">
+                        <div class="students-loading">Loading students...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LANDING SCREEN (shown initially) -->
+        <div id="landing-screen" class="screen">
+            <div class="landing-card">
+                <div class="bot-message-row">
+                    <div class="bot-avatar">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="6" rx="3" width="18" height="12" fill="#7c7cbd"/>
+                            <circle cx="8" cy="12" r="2" fill="white"/>
+                            <circle cx="16" cy="12" r="2" fill="white"/>
+                            <circle cx="8" cy="12" r="0.75" fill="#e74c3c"/>
+                            <circle cx="16" cy="12" r="0.75" fill="#e74c3c"/>
+                        </svg>
+                    </div>
+                    <div class="bot-bubble">Hey! how can I help you today?</div>
+                </div>
+                <textarea id="landing-input" placeholder="Type here..." rows="3"></textarea>
+                <button class="send-btn" onclick="sendFromLanding()">Send</button>
+                <div class="example-chips">
+                    <button class="chip" onclick="sendChip('What strategies work for Alex?')">What strategies work for Alex?</button>
+                    <button class="chip" onclick="sendChip('Tell me about Jordan\\'s triggers')">Tell me about Jordan's triggers</button>
+                    <button class="chip" onclick="sendChip('Draft an IEP update')">Draft an IEP update</button>
+                    <button class="chip" onclick="sendChip('Help with a meltdown')">Help with a meltdown</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAT SCREEN (shown after first message) -->
+        <div id="chat-screen" class="screen" style="display:none">
+            <!-- New Chat Button -->
+            <button id="new-chat-btn" class="new-chat-btn" onclick="startNewChat()" aria-label="Start new conversation">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+                <span>New Chat</span>
+            </button>
+            <div class="chat-messages" id="messages">
+                <!-- Messages inserted here -->
+            </div>
+            <div class="chat-input-bar">
+                <textarea id="chat-input" placeholder="Type here..." rows="1" onkeydown="handleKeyDown(event)" oninput="autoResize(this)"></textarea>
+                <button class="send-btn" id="send-btn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <!-- TRACE SIDEBAR OVERLAY -->
+        <div id="trace-overlay" class="overlay" onclick="closeTrace()"></div>
+
+        <!-- TRACE SIDEBAR -->
+        <div id="trace-sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Trace</h3>
+                <button class="close-btn" onclick="closeTrace()" aria-label="Close trace panel">&times;</button>
+            </div>
+            <div class="sidebar-content" id="sidebar-content">
+                <!-- Steps accordion here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
