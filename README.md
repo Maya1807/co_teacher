@@ -143,7 +143,6 @@ python -m app.main
 
 Access the application:
 - **Web UI**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
 
 
 ## Project Structure
@@ -178,3 +177,8 @@ co_teacher/
 └── README.md
 ```
 
+## Deployment
+
+The application is deployed on Render:
+
+- **Live URL**: https://co-teacher-nl17.onrender.com
