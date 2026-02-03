@@ -260,19 +260,11 @@ function addBotMessage(content, steps = []) {
     const formattedContent = formatMessageContent(content);
     const hasSteps = steps && steps.length > 0;
 
-    // Bot avatar SVG
-    const avatarSvg = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="6" rx="3" width="18" height="12" fill="#7c7cbd"/>
-            <circle cx="8" cy="12" r="2" fill="white"/>
-            <circle cx="16" cy="12" r="2" fill="white"/>
-            <circle cx="8" cy="12" r="0.75" fill="#e74c3c"/>
-            <circle cx="16" cy="12" r="0.75" fill="#e74c3c"/>
-        </svg>
-    `;
+    // Bot avatar image
+    const avatarImg = `<img src="/static/icon.png" alt="Co-Teacher Bot" class="bot-avatar-img">`;
 
     messageDiv.innerHTML = `
-        <div class="bot-avatar">${avatarSvg}</div>
+        <div class="bot-avatar">${avatarImg}</div>
         <div class="message-content">
             <div class="message-bubble" ${hasSteps ? `onclick="openTrace(${messageId})"` : ''}>
                 ${formattedContent}
@@ -322,13 +314,7 @@ function showTypingIndicator(show) {
             indicator.className = 'typing-indicator';
             indicator.innerHTML = `
                 <div class="bot-avatar">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <rect x="3" y="6" rx="3" width="18" height="12" fill="#7c7cbd"/>
-                        <circle cx="8" cy="12" r="2" fill="white"/>
-                        <circle cx="16" cy="12" r="2" fill="white"/>
-                        <circle cx="8" cy="12" r="0.75" fill="#e74c3c"/>
-                        <circle cx="16" cy="12" r="0.75" fill="#e74c3c"/>
-                    </svg>
+                    <img src="/static/icon.png" alt="Co-Teacher Bot" class="bot-avatar-img">
                 </div>
                 <div class="typing-dots">
                     <span></span>
