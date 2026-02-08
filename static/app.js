@@ -41,6 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
     classSidebarContent = document.getElementById('class-sidebar-content');
     classHeaderTitle = document.getElementById('class-header-title');
 
+    // Render theme cards on landing page
+    renderThemeCards();
+
     // Focus landing input
     if (landingInput) {
         landingInput.focus();
@@ -79,37 +82,6 @@ function switchToChat() {
 }
 
 /**
- * Start a new conversation - return to landing screen
- */
-function startNewChat() {
-    // Clear messages array
-    messages.length = 0;
-
-    // Clear messages container
-    if (messagesContainer) {
-        messagesContainer.innerHTML = '';
-    }
-
-    // Clear input fields
-    if (chatInput) {
-        chatInput.value = '';
-    }
-    if (landingInput) {
-        landingInput.value = '';
-    }
-
-    // Switch back to landing screen
-    chatScreen.style.display = 'none';
-    landingScreen.style.display = 'flex';
-    isLanding = true;
-
-    // Focus landing input
-    if (landingInput) {
-        landingInput.focus();
-    }
-}
-
-/**
  * Send message from landing screen
  */
 function sendFromLanding() {
@@ -124,6 +96,110 @@ function sendFromLanding() {
 
     // Process the user message
     processUserMessage(text);
+}
+
+/**
+ * Theme cards data
+ */
+const THEMES = [
+    {
+        id: 'learn',
+        label: 'Learn',
+        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>`,
+        queries: [
+            "What strategies work best for students with ADHD?",
+            "Suggest a reading intervention for dyslexia",
+            "How can I teach fractions to a student with dyscalculia?"
+        ]
+    },
+    {
+        id: 'write',
+        label: 'Write',
+        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
+        queries: [
+            "Draft an IEP progress update for Alex",
+            "Write a parent email about today's behavior incident",
+            "Generate a weekly summary for my class"
+        ]
+    },
+    {
+        id: 'understand',
+        label: 'Understand',
+        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+        queries: [
+            "Tell me about Jordan's triggers and history",
+            "What accommodations does Morgan currently have?",
+            "Show me Casey's recent progress"
+        ]
+    },
+    {
+        id: 'plan',
+        label: 'Plan',
+        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+        queries: [
+            "What should I prepare for today's sessions?",
+            "Suggest activities for my afternoon group",
+            "Help me plan a sensory break schedule"
+        ]
+    },
+    {
+        id: 'reflect',
+        label: 'Reflect',
+        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+        queries: [
+            "Which strategies haven't worked for Taylor?",
+            "Summarize this week's incidents",
+            "How has Riley's behavior changed this month?"
+        ]
+    }
+];
+
+let activeTheme = null;
+
+/**
+ * Render theme cards on the landing page
+ */
+function renderThemeCards() {
+    const container = document.getElementById('theme-cards');
+    if (!container) return;
+
+    container.innerHTML = THEMES.map(theme => `
+        <button class="theme-card theme-${theme.id}" onclick="toggleTheme('${theme.id}')">
+            <span class="theme-icon">${theme.icon}</span>
+            <span class="theme-label">${theme.label}</span>
+        </button>
+    `).join('') + '<div class="theme-queries" id="theme-queries"></div>';
+}
+
+/**
+ * Toggle a theme's example queries
+ */
+function toggleTheme(themeId) {
+    const queriesContainer = document.getElementById('theme-queries');
+    if (!queriesContainer) return;
+
+    // Deselect if clicking the same theme
+    if (activeTheme === themeId) {
+        activeTheme = null;
+        queriesContainer.innerHTML = '';
+        queriesContainer.classList.remove('visible');
+        document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
+        return;
+    }
+
+    activeTheme = themeId;
+    const theme = THEMES.find(t => t.id === themeId);
+    if (!theme) return;
+
+    // Update active state on cards
+    document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.theme-${themeId}`)?.classList.add('active');
+
+    // Render query chips
+    queriesContainer.innerHTML = theme.queries.map(q =>
+        `<button class="query-chip" onclick="sendChip('${q.replace(/'/g, "\\'")}')">${escapeHtml(q)}</button>`
+    ).join('');
+    queriesContainer.classList.add('visible');
 }
 
 /**
@@ -260,11 +336,8 @@ function addBotMessage(content, steps = []) {
     const formattedContent = formatMessageContent(content);
     const hasSteps = steps && steps.length > 0;
 
-    // Bot avatar image
-    const avatarImg = `<img src="/static/icon.png" alt="Co-Teacher Bot" class="bot-avatar-img">`;
-
     messageDiv.innerHTML = `
-        <div class="bot-avatar">${avatarImg}</div>
+        <div class="bot-avatar"><img src="/static/icon.png" alt="Co-Teacher" class="bot-avatar-img"></div>
         <div class="message-content">
             <div class="message-bubble" ${hasSteps ? `onclick="openTrace(${messageId})"` : ''}>
                 ${formattedContent}
@@ -314,7 +387,7 @@ function showTypingIndicator(show) {
             indicator.className = 'typing-indicator';
             indicator.innerHTML = `
                 <div class="bot-avatar">
-                    <img src="/static/icon.png" alt="Co-Teacher Bot" class="bot-avatar-img">
+                    <img src="/static/icon.png" alt="Co-Teacher" class="bot-avatar-img">
                 </div>
                 <div class="typing-dots">
                     <span></span>
@@ -738,56 +811,6 @@ async function loadPredictions() {
 }
 
 /**
- * Refresh predictions (bypass cache)
- */
-async function refreshPredictions(event) {
-    event.stopPropagation();  // Don't toggle the section
-
-    const refreshBtn = event.currentTarget;
-    refreshBtn.classList.add('spinning');
-
-    const predictionsContent = document.getElementById('predictions-content');
-    const predictionsBadge = document.getElementById('predictions-badge');
-
-    predictionsContent.innerHTML = '<div class="predictions-loading">Refreshing predictions...</div>';
-
-    try {
-        const response = await fetch(`${API_BASE}/api/predictions/today?refresh=true`);
-        if (!response.ok) throw new Error('Failed to refresh');
-
-        const data = await response.json();
-        predictionsData = data.predictions || [];
-
-        // Update badge
-        if (predictionsBadge) {
-            const highRisk = predictionsData.filter(p => p.risk_level === 'high').length;
-            const mediumRisk = predictionsData.filter(p => p.risk_level === 'medium').length;
-
-            if (highRisk > 0) {
-                predictionsBadge.textContent = `${highRisk} alert${highRisk > 1 ? 's' : ''}`;
-                predictionsBadge.className = 'predictions-badge high';
-            } else if (mediumRisk > 0) {
-                predictionsBadge.textContent = `${mediumRisk} heads up`;
-                predictionsBadge.className = 'predictions-badge medium';
-            } else if (data.events && data.events.length > 0) {
-                predictionsBadge.textContent = 'All clear';
-                predictionsBadge.className = 'predictions-badge low';
-            } else {
-                predictionsBadge.textContent = 'No events';
-                predictionsBadge.className = 'predictions-badge none';
-            }
-        }
-
-        renderPredictions(data);
-    } catch (error) {
-        console.error('Error refreshing predictions:', error);
-        predictionsContent.innerHTML = '<div class="predictions-error">Failed to refresh</div>';
-    } finally {
-        refreshBtn.classList.remove('spinning');
-    }
-}
-
-/**
  * Render predictions in the sidebar
  */
 function renderPredictions(data) {
@@ -1005,7 +1028,7 @@ function renderSchedule(events) {
 
     let html = '';
     events.forEach(event => {
-        const timeStr = event.start_time ? formatTime(event.start_time) : '';
+        const timeStr = event.start_time ? formatTimeString(event.start_time) : '';
         const eventType = event.event_type || 'class_schedule';
         const typeLabel = formatEventType(eventType);
 
@@ -1024,27 +1047,13 @@ function renderSchedule(events) {
 }
 
 /**
- * Format time from HH:MM:SS string or Date object to HH:MM AM/PM
+ * Format time from HH:MM:SS to HH:MM AM/PM
  */
-function formatTime(timeInput) {
-    if (!timeInput) return '';
-
-    let hours, minutes;
-
-    // Handle Date objects
-    if (timeInput instanceof Date) {
-        hours = timeInput.getHours();
-        minutes = timeInput.getMinutes().toString().padStart(2, '0');
-    }
-    // Handle string format "HH:MM:SS" or "HH:MM"
-    else if (typeof timeInput === 'string') {
-        const parts = timeInput.split(':');
-        hours = parseInt(parts[0], 10);
-        minutes = parts[1] || '00';
-    } else {
-        return '';
-    }
-
+function formatTimeString(timeStr) {
+    if (!timeStr) return '';
+    const parts = timeStr.split(':');
+    let hours = parseInt(parts[0], 10);
+    const minutes = parts[1] || '00';
     const ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12 || 12;
     return `${hours}:${minutes} ${ampm}`;
