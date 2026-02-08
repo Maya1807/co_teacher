@@ -14,8 +14,9 @@ if TYPE_CHECKING:
 # Common student name patterns for extraction
 # These are sample names used in the system - could be made configurable
 STUDENT_NAME_PATTERN = re.compile(
-    r"\b(Alex|Jordan|Maya|Sam|Emma|Carlos|Taylor|Jamie|"
-    r"Alex M\.|Jordan K\.|Maya R\.|Sam T\.|Emma L\.|Carlos D\.|Taylor B\.|Jamie W\.)\b",
+    r"\b(Alex|Jordan|Maya|Sam|Emma|Carlos|Taylor|Jamie|Morgan|Casey|Riley|"
+    r"Alex M\.|Jordan K\.|Maya R\.|Sam T\.|Emma L\.|Carlos D\.|Taylor B\.|Jamie W\.|"
+    r"Morgan S\.|Casey P\.|Riley N\.)\b",
     re.IGNORECASE
 )
 
@@ -70,7 +71,9 @@ class ContextResolver:
             "recent_student": None,
             "recent_topic": None,
             "previous_agents": [],
-            "history_summary": ""
+            "history_summary": "",
+            "was_class_wide": False,
+            "mentioned_students": [],
         }
 
         if not history or len(history) <= 1:
@@ -91,13 +94,32 @@ class ContextResolver:
             if agent and agent not in context["previous_agents"]:
                 context["previous_agents"].append(agent)
 
+        # Second pass: detect class-wide responses from the most recent assistant message
+        for msg in reversed(history[:-1]):
+            if msg.get("role") == "assistant":
+                content = msg.get("content", "")
+                all_names = STUDENT_NAME_PATTERN.findall(content)
+                # Deduplicate (case-insensitive) while preserving order
+                seen = set()
+                unique_names = []
+                for name in all_names:
+                    key = name.lower()
+                    if key not in seen:
+                        seen.add(key)
+                        unique_names.append(name)
+                if len(unique_names) >= 3:
+                    context["was_class_wide"] = True
+                    context["mentioned_students"] = unique_names
+                break  # Only check the most recent assistant message
+
         # Create a brief summary of recent conversation
         recent_msgs = history[-4:-1] if len(history) > 4 else history[:-1]
         if recent_msgs:
             summaries = []
             for msg in recent_msgs:
                 role = msg.get("role", "unknown")
-                content = msg.get("content", "")[:100]
+                limit = 300 if role == "assistant" else 100
+                content = msg.get("content", "")[:limit]
                 summaries.append(f"{role}: {content}...")
             context["history_summary"] = "\n".join(summaries)
 

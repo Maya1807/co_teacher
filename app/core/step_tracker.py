@@ -9,7 +9,7 @@ import json
 
 
 # Valid module names - must match architecture diagram
-VALID_MODULES = ["ORCHESTRATOR", "STUDENT_AGENT", "RAG_AGENT", "ADMIN_AGENT", "PREDICT_AGENT"]
+VALID_MODULES = ["ORCHESTRATOR", "PLANNER", "STUDENT_AGENT", "RAG_AGENT", "ADMIN_AGENT", "PREDICT_AGENT"]
 
 
 @dataclass

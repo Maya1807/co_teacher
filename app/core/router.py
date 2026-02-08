@@ -464,53 +464,72 @@ class RuleBasedRouter:
         use_llm_fallback: bool = True
     ) -> RoutingResult:
         """
-        Route query with optional LLM fallback for low-confidence cases.
+        Route query using either LLM-only or rule-based-with-LLM-fallback.
 
-        This method first tries rule-based routing, then falls back to LLM
-        if confidence is too low and LLM client is configured.
+        When use_llm_fallback is True, skip rule-based routing entirely and
+        go straight to the LLM for maximum accuracy (costs one LLM call).
+
+        When use_llm_fallback is False, use only the rule-based router
+        (regex + keyword patterns). This is faster and free but may be
+        less accurate for ambiguous queries.
 
         Args:
             query: The user's input query
             conversation_context: Context from conversation history
             context: Additional context (session_id, previous_agents)
-            use_llm_fallback: Whether to use LLM when confidence < 0.5
+            use_llm_fallback: If True, route via LLM directly.
+                              If False, use only rule-based routing.
 
         Returns:
             RoutingResult with agents, confidence, and extracted entities
         """
-        # First try rule-based routing
-        result = self.route(query, conversation_context)
-
-        # Fall back to LLM if needed and configured
-        if result.requires_llm_confirmation and use_llm_fallback and self.llm:
-            result = await self._llm_route(query, context)
+        if use_llm_fallback and self.llm:
+            # LLM routing: let the LLM decide which agent(s) to call
+            result = await self._llm_route(query, context, conversation_context)
+        else:
+            # Rule-based routing only: regex patterns + keyword matching
+            result = self.route(query, conversation_context)
 
         return result
 
     async def _llm_route(
         self,
         query: str,
-        context: Optional[Dict[str, Any]]
+        _context: Optional[Dict[str, Any]],
+        conversation_context: Optional[Dict[str, Any]] = None
     ) -> RoutingResult:
         """
-        Use LLM for routing when rule-based router is not confident.
+        Use LLM for routing decisions.
 
         Args:
             query: The user's input query
-            context: Additional context (session_id, previous_agents)
+            _context: Request-level context (unused, kept for interface compat)
+            conversation_context: Context extracted from conversation history
+                (recent_student, previous_agents, history_summary)
 
         Returns:
             RoutingResult from LLM analysis
         """
-        from app.utils.prompts import ORCHESTRATOR_ROUTE_PROMPT, ORCHESTRATOR_SYSTEM
-
-        previous_agents = context.get("previous_agents", []) if context else []
-
-        prompt = ORCHESTRATOR_ROUTE_PROMPT.format(
-            query=query,
-            session_id=context.get("session_id", "default") if context else "default",
-            previous_agents=", ".join(previous_agents) or "None"
+        from app.utils.prompts import (
+            ORCHESTRATOR_ROUTE_PROMPT, ORCHESTRATOR_ROUTE_CONTEXT,
+            ORCHESTRATOR_SYSTEM
         )
+
+        conv = conversation_context or {}
+        recent_student = conv.get("recent_student")
+        previous_agents = conv.get("previous_agents", [])
+        history_summary = conv.get("history_summary")
+
+        has_context = recent_student or previous_agents or history_summary
+
+        prompt = ORCHESTRATOR_ROUTE_PROMPT.format(query=query)
+
+        if has_context:
+            prompt += ORCHESTRATOR_ROUTE_CONTEXT.format(
+                recent_student=recent_student or "Unknown",
+                history_summary=history_summary or "No prior messages",
+                previous_agents=", ".join(previous_agents) or "None"
+            )
 
         # Call LLM
         response = await self.llm.complete(

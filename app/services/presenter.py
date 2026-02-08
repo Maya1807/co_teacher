@@ -71,7 +71,7 @@ class Presenter:
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=400
+            max_tokens=800
         )
 
         content = response.get("content", agent_response)

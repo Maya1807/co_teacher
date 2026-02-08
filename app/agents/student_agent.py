@@ -50,6 +50,11 @@ class StudentAgent(BaseAgent):
         student_id = input_data.get("student_id")
         action = input_data.get("action", "query")  # query, update, list
 
+        # Capture original_query for update detection (planner sends
+        # a specific task as "prompt" but the raw user query as
+        # "original_query" so update extraction sees the real intent).
+        self._current_original_query = input_data.get("original_query")
+
         # Determine what action to take
         if action == "update":
             return await self._handle_update(query, student_id, context)
@@ -86,7 +91,10 @@ class StudentAgent(BaseAgent):
 
         # Check if query contains implicit update information
         # (e.g., "Alex had a meltdown when the bell rang")
-        update_result = await self._extract_and_apply_updates(query, profile, sid)
+        # Use original_query when available so update extraction sees the
+        # teacher's raw words rather than the planner's rewritten task.
+        raw_query = getattr(self, "_current_original_query", None) or query
+        update_result = await self._extract_and_apply_updates(raw_query, profile, sid)
 
         # Get daily context if teacher_id available
         daily_context = []

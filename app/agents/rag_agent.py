@@ -10,7 +10,9 @@ from app.utils.prompts import (
     RAG_AGENT_SYSTEM,
     RAG_AGENT_SEARCH_PROMPT,
     RAG_AGENT_NO_CONTEXT_PROMPT,
-    format_teaching_methods
+    RAG_AGENT_CLASS_WIDE_PROMPT,
+    format_teaching_methods,
+    format_all_student_profiles,
 )
 
 
@@ -78,15 +80,20 @@ class RAGAgent(BaseAgent):
         )
 
         # Generate response
-        if student_context:
+        all_students_context = input_data.get("all_students_context")
+        if all_students_context:
+            response = await self._generate_class_wide_response(
+                query, methods, all_students_context
+            )
+        elif student_context:
             response = await self._generate_contextual_response(
                 query, methods, student_context
             )
         else:
             response = await self._generate_general_response(query, methods)
 
-        # Cache the response if no student context
-        if not student_context:
+        # Cache the response if no student context and not class-wide
+        if not student_context and not all_students_context:
             await self.cache.set(query, response, self.MODULE_NAME)
 
         return {
@@ -164,6 +171,36 @@ class RAGAgent(BaseAgent):
             },
             temperature=0.7,
             max_tokens=1000
+        )
+
+        return response
+
+    async def _generate_class_wide_response(
+        self,
+        query: str,
+        methods: List[Dict[str, Any]],
+        all_students_context: List[Dict[str, Any]],
+    ) -> str:
+        """Generate response personalized to all students in the class."""
+        prompt = RAG_AGENT_CLASS_WIDE_PROMPT.format(
+            query=query,
+            all_student_profiles=format_all_student_profiles(all_students_context),
+            retrieved_methods=format_teaching_methods(methods),
+        )
+
+        response = await self.call_llm(
+            messages=[
+                {"role": "system", "content": RAG_AGENT_SYSTEM},
+                {"role": "user", "content": prompt},
+            ],
+            prompt_summary={
+                "action": "class_wide_search",
+                "query_snippet": query[:100],
+                "num_students": len(all_students_context),
+                "methods_found": len(methods),
+            },
+            temperature=0.7,
+            max_tokens=1500,
         )
 
         return response
