@@ -128,6 +128,89 @@ class TestContextResolver:
         # Summary should contain truncated content (100 chars + "...")
         assert "..." in result["history_summary"]
 
+    # ==================== class-wide detection tests ====================
+
+    def test_extract_context_detects_class_wide_response(self, resolver):
+        """3+ student names in assistant message → was_class_wide=True."""
+        history = [
+            {"role": "user", "content": "Give me tips for all students"},
+            {
+                "role": "assistant",
+                "content": (
+                    "Here are tips for your class:\n"
+                    "- Alex: Use visual schedules\n"
+                    "- Morgan: Provide noise-canceling headphones\n"
+                    "- Jordan: Seat near the front\n"
+                    "- Casey: Give extra transition time"
+                ),
+                "agent_used": "RAG_AGENT",
+            },
+            {"role": "user", "content": "What about the loud sounds?"},
+        ]
+        result = resolver.extract_conversation_context(history)
+
+        assert result["was_class_wide"] is True
+        names_lower = [n.lower() for n in result["mentioned_students"]]
+        assert "alex" in names_lower
+        assert "morgan" in names_lower
+        assert "jordan" in names_lower
+        assert "casey" in names_lower
+
+    def test_extract_context_single_student_not_class_wide(self, resolver):
+        """1 student name in assistant message → was_class_wide=False."""
+        history = [
+            {"role": "user", "content": "Tell me about Alex"},
+            {
+                "role": "assistant",
+                "content": "Alex has autism and does well with visual schedules.",
+                "agent_used": "STUDENT_AGENT",
+            },
+            {"role": "user", "content": "What works for him?"},
+        ]
+        result = resolver.extract_conversation_context(history)
+
+        assert result["was_class_wide"] is False
+        assert result["mentioned_students"] == []
+
+    def test_extract_context_class_wide_preserves_recent_student(self, resolver):
+        """recent_student is still set alongside was_class_wide=True."""
+        history = [
+            {"role": "user", "content": "Tips for everyone"},
+            {
+                "role": "assistant",
+                "content": (
+                    "- Alex: visual schedules\n"
+                    "- Morgan: headphones\n"
+                    "- Riley: fidget tools"
+                ),
+                "agent_used": "RAG_AGENT",
+            },
+            {"role": "user", "content": "How about Alex with loud sounds?"},
+        ]
+        result = resolver.extract_conversation_context(history)
+
+        assert result["was_class_wide"] is True
+        # recent_student should still be set (first name found scanning backwards)
+        assert result["recent_student"] is not None
+
+    def test_extract_context_assistant_summary_longer_truncation(self, resolver):
+        """Assistant messages get 300 chars in summary, user messages get 100."""
+        assistant_content = "A" * 250  # > 100 but < 300
+        user_content = "B" * 150
+        history = [
+            {"role": "user", "content": user_content},
+            {"role": "assistant", "content": assistant_content},
+            {"role": "user", "content": "Current query"},
+        ]
+        result = resolver.extract_conversation_context(history)
+
+        summary = result["history_summary"]
+        # Assistant's 250-char content should survive (not truncated at 100)
+        assert "A" * 250 in summary
+        # User's 150-char content should be truncated to 100
+        assert "B" * 150 not in summary
+        assert "B" * 100 in summary
+
     # ==================== resolve_student tests ====================
 
     @pytest.mark.asyncio

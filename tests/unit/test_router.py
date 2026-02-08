@@ -493,30 +493,32 @@ class TestLLMFallbackRouting:
         return RuleBasedRouter()
 
     @pytest.mark.asyncio
-    async def test_route_with_fallback_uses_rules_first(self, router_with_llm, mock_llm_client):
-        """Rule-based routing is used when confident."""
+    async def test_route_with_fallback_uses_rules_when_llm_disabled(self, router_with_llm, mock_llm_client):
+        """Rule-based routing is used when use_llm_fallback=False."""
         result = await router_with_llm.route_with_fallback(
-            "Show me Alex's profile"
+            "Show me Alex's profile",
+            use_llm_fallback=False
         )
 
         assert AgentType.STUDENT_AGENT in result.agents
-        # LLM should NOT be called for high-confidence queries
+        # LLM should NOT be called when disabled
         mock_llm_client.complete.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_route_with_fallback_uses_llm_for_ambiguous(self, router_with_llm, mock_llm_client):
-        """LLM fallback is used for low-confidence queries."""
+    async def test_route_with_fallback_uses_llm_when_enabled(self, router_with_llm, mock_llm_client):
+        """LLM routing is used when use_llm_fallback=True (default)."""
         result = await router_with_llm.route_with_fallback(
-            "Hello there"  # Ambiguous query
+            "Hello there",
+            use_llm_fallback=True
         )
 
-        # LLM should be called
+        # LLM should be called directly
         mock_llm_client.complete.assert_called_once()
         assert result.matched_pattern == "llm_routing"
 
     @pytest.mark.asyncio
-    async def test_route_with_fallback_disabled(self, router_with_llm, mock_llm_client):
-        """LLM fallback can be disabled."""
+    async def test_route_with_fallback_rules_only_for_ambiguous(self, router_with_llm, mock_llm_client):
+        """Rule-based routing returns low confidence for ambiguous queries when LLM is disabled."""
         result = await router_with_llm.route_with_fallback(
             "Hello there",
             use_llm_fallback=False
@@ -528,12 +530,12 @@ class TestLLMFallbackRouting:
 
     @pytest.mark.asyncio
     async def test_route_with_fallback_no_llm_configured(self, router_without_llm):
-        """Falls back gracefully when no LLM configured."""
+        """Falls back to rule-based when no LLM client is configured."""
         result = await router_without_llm.route_with_fallback(
             "Hello there"
         )
 
-        # Should return low-confidence result
+        # Should return low-confidence rule-based result
         assert result.requires_llm_confirmation is True
 
     @pytest.mark.asyncio

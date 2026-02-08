@@ -430,15 +430,16 @@ class TestOrchestrator:
     @pytest.mark.asyncio
     async def test_lazy_service_initialization(self, orchestrator):
         """Services are lazily initialized."""
-        assert orchestrator._router is None
+        assert orchestrator._planner is None
+        assert orchestrator._plan_executor is None
         assert orchestrator._conversation_service is None
         assert orchestrator._context_resolver is None
         assert orchestrator._presenter is None
 
         # Access triggers initialization
-        _ = orchestrator.router
+        _ = orchestrator.planner
         _ = orchestrator.conversation_service
-        assert orchestrator._router is not None
+        assert orchestrator._planner is not None
         assert orchestrator._conversation_service is not None
 
     @pytest.mark.asyncio
@@ -450,150 +451,139 @@ class TestOrchestrator:
         assert "didn't receive" in result["response"].lower()
 
     @pytest.mark.asyncio
-    async def test_routes_to_student_agent(self, orchestrator, mock_llm_client, mock_memory_manager):
-        """Routes student queries to StudentAgent."""
-        from app.core.router import RoutingResult
+    async def test_plans_to_student_agent(self, orchestrator, mock_llm_client, mock_memory_manager):
+        """Plans student queries to StudentAgent via planner + plan_executor."""
+        from app.core.planner import ExecutionPlan, PlanStep
 
-        routing_result = RoutingResult(
-            agents=[AgentType.STUDENT_AGENT],
-            confidence=0.9,
-            extracted_entities={"name": "Alex"}
+        plan = ExecutionPlan(
+            steps=[PlanStep(step_index=0, agent=AgentType.STUDENT_AGENT, task="Get Alex's profile")],
+            student_name="Alex",
+            original_query="Tell me about Alex",
         )
 
-        # Mock router's route_with_fallback
-        with patch.object(orchestrator.router, 'route_with_fallback', new_callable=AsyncMock) as mock_route:
-            mock_route.return_value = routing_result
+        with patch.object(orchestrator.planner, 'create_plan', new_callable=AsyncMock) as mock_plan:
+            mock_plan.return_value = plan
 
-            # Mock student agent methods
             with patch.object(orchestrator.student_agent, 'get_student_context', new_callable=AsyncMock) as mock_context:
                 mock_context.return_value = {"name": "Alex", "disability_type": "autism", "student_id": "STU001"}
 
-                # Mock agent executor
-                with patch.object(orchestrator.agent_executor, 'execute', new_callable=AsyncMock) as mock_execute:
-                    mock_execute.return_value = {
+                with patch.object(orchestrator.plan_executor, 'execute', new_callable=AsyncMock) as mock_exec:
+                    mock_exec.return_value = {
                         "response": "Here is Alex's profile",
-                        "action_taken": "profile_retrieved"
+                        "agents_used": ["STUDENT_AGENT"],
                     }
 
-                    # Mock presenter
-                    with patch.object(orchestrator.presenter, 'present', new_callable=AsyncMock) as mock_present:
-                        mock_present.return_value = "Here is Alex's profile"
-
-                        result = await orchestrator.process({"prompt": "Tell me about Alex"})
+                    result = await orchestrator.process({"prompt": "Tell me about Alex"})
 
         assert "STUDENT_AGENT" in result["agents_used"]
 
     @pytest.mark.asyncio
-    async def test_routes_to_rag_agent(self, orchestrator, mock_memory_manager):
-        """Routes strategy queries to RAGAgent."""
-        from app.core.router import RoutingResult
+    async def test_plans_to_rag_agent(self, orchestrator, mock_memory_manager):
+        """Plans strategy queries to RAGAgent."""
+        from app.core.planner import ExecutionPlan, PlanStep
 
-        routing_result = RoutingResult(
-            agents=[AgentType.RAG_AGENT],
-            confidence=0.9,
-            extracted_entities={}
+        plan = ExecutionPlan(
+            steps=[PlanStep(step_index=0, agent=AgentType.RAG_AGENT, task="Find ADHD strategies")],
+            student_name=None,
+            original_query="ADHD strategies",
         )
 
-        with patch.object(orchestrator.router, 'route_with_fallback', new_callable=AsyncMock) as mock_route:
-            mock_route.return_value = routing_result
+        with patch.object(orchestrator.planner, 'create_plan', new_callable=AsyncMock) as mock_plan:
+            mock_plan.return_value = plan
 
-            with patch.object(orchestrator.agent_executor, 'execute', new_callable=AsyncMock) as mock_execute:
-                mock_execute.return_value = {
+            with patch.object(orchestrator.plan_executor, 'execute', new_callable=AsyncMock) as mock_exec:
+                mock_exec.return_value = {
                     "response": "Here are some strategies",
-                    "methods_retrieved": []
+                    "agents_used": ["RAG_AGENT"],
                 }
 
-                with patch.object(orchestrator.presenter, 'present', new_callable=AsyncMock) as mock_present:
-                    mock_present.return_value = "Here are some strategies"
-
-                    result = await orchestrator.process({"prompt": "ADHD strategies"})
+                result = await orchestrator.process({"prompt": "ADHD strategies"})
 
         assert "RAG_AGENT" in result["agents_used"]
 
     @pytest.mark.asyncio
-    async def test_routes_to_admin_agent(self, orchestrator, mock_memory_manager):
-        """Routes admin queries to AdminAgent."""
-        from app.core.router import RoutingResult
+    async def test_plans_to_admin_agent(self, orchestrator, mock_memory_manager):
+        """Plans admin queries to AdminAgent."""
+        from app.core.planner import ExecutionPlan, PlanStep
 
-        routing_result = RoutingResult(
-            agents=[AgentType.ADMIN_AGENT],
-            confidence=0.9,
-            extracted_entities={}
+        plan = ExecutionPlan(
+            steps=[PlanStep(step_index=0, agent=AgentType.ADMIN_AGENT, task="Write a report")],
+            student_name=None,
+            original_query="Write a report",
         )
 
-        with patch.object(orchestrator.router, 'route_with_fallback', new_callable=AsyncMock) as mock_route:
-            mock_route.return_value = routing_result
+        with patch.object(orchestrator.planner, 'create_plan', new_callable=AsyncMock) as mock_plan:
+            mock_plan.return_value = plan
 
-            with patch.object(orchestrator.agent_executor, 'execute', new_callable=AsyncMock) as mock_execute:
-                mock_execute.return_value = {
+            with patch.object(orchestrator.plan_executor, 'execute', new_callable=AsyncMock) as mock_exec:
+                mock_exec.return_value = {
                     "response": "Here is your report",
-                    "document_type": "report"
+                    "agents_used": ["ADMIN_AGENT"],
                 }
 
-                with patch.object(orchestrator.presenter, 'present', new_callable=AsyncMock) as mock_present:
-                    mock_present.return_value = "Here is your report"
-
-                    result = await orchestrator.process({"prompt": "Write a report"})
+                result = await orchestrator.process({"prompt": "Write a report"})
 
         assert "ADMIN_AGENT" in result["agents_used"]
 
     @pytest.mark.asyncio
-    async def test_multi_agent_uses_response_combiner(self, orchestrator, mock_memory_manager):
-        """Multi-agent queries use ResponseCombiner."""
-        from app.core.router import RoutingResult
-        from app.services.response_combiner import CombinedResult
+    async def test_multi_agent_plan(self, orchestrator, mock_memory_manager):
+        """Multi-agent queries produce multi-step plans."""
+        from app.core.planner import ExecutionPlan, PlanStep
 
-        routing_result = RoutingResult(
-            agents=[AgentType.STUDENT_AGENT, AgentType.RAG_AGENT],
-            confidence=0.9,
-            extracted_entities={"name": "Alex"}
+        plan = ExecutionPlan(
+            steps=[
+                PlanStep(step_index=0, agent=AgentType.STUDENT_AGENT, task="Get Alex's profile"),
+                PlanStep(step_index=1, agent=AgentType.RAG_AGENT, task="Find strategies for Alex", depends_on=[0]),
+            ],
+            student_name="Alex",
+            original_query="What strategies work for Alex?",
         )
 
-        with patch.object(orchestrator.router, 'route_with_fallback', new_callable=AsyncMock) as mock_route:
-            mock_route.return_value = routing_result
+        with patch.object(orchestrator.planner, 'create_plan', new_callable=AsyncMock) as mock_plan:
+            mock_plan.return_value = plan
 
             with patch.object(orchestrator.student_agent, 'get_student_context', new_callable=AsyncMock) as mock_context:
                 mock_context.return_value = {"name": "Alex", "student_id": "STU001", "profile": {}}
 
-                with patch.object(orchestrator.response_combiner, 'combine_personalized_response', new_callable=AsyncMock) as mock_combine:
-                    mock_combine.return_value = CombinedResult(
-                        response="Personalized strategies for Alex",
-                        student_name="Alex"
-                    )
+                with patch.object(orchestrator.plan_executor, 'execute', new_callable=AsyncMock) as mock_exec:
+                    mock_exec.return_value = {
+                        "response": "Personalized strategies for Alex",
+                        "agents_used": ["STUDENT_AGENT", "RAG_AGENT"],
+                        "student_name": "Alex",
+                    }
 
                     result = await orchestrator.process({"prompt": "What strategies work for Alex?"})
 
         assert "STUDENT_AGENT" in result["agents_used"]
         assert "RAG_AGENT" in result["agents_used"]
-        mock_combine.assert_called_once()
+        mock_exec.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_orchestrator_tracks_steps(self, orchestrator, mock_step_tracker, mock_memory_manager):
         """Orchestrator returns tracked steps."""
-        from app.core.router import RoutingResult
+        from app.core.planner import ExecutionPlan, PlanStep
 
         mock_step_tracker.get_steps.return_value = [
-            {"module": "ORCHESTRATOR", "prompt": {}, "response": {}}
+            {"module": "PLANNER", "prompt": {}, "response": {}}
         ]
 
-        routing_result = RoutingResult(
-            agents=[AgentType.RAG_AGENT],
-            confidence=0.9,
-            extracted_entities={}
+        plan = ExecutionPlan(
+            steps=[PlanStep(step_index=0, agent=AgentType.RAG_AGENT, task="Find strategies")],
+            student_name=None,
+            original_query="Test query",
         )
 
-        with patch.object(orchestrator.router, 'route_with_fallback', new_callable=AsyncMock) as mock_route:
-            mock_route.return_value = routing_result
+        with patch.object(orchestrator.planner, 'create_plan', new_callable=AsyncMock) as mock_plan:
+            mock_plan.return_value = plan
 
-            with patch.object(orchestrator.agent_executor, 'execute', new_callable=AsyncMock) as mock_execute:
-                mock_execute.return_value = {"response": "Response"}
+            with patch.object(orchestrator.plan_executor, 'execute', new_callable=AsyncMock) as mock_exec:
+                mock_exec.return_value = {
+                    "response": "Response",
+                    "agents_used": ["RAG_AGENT"],
+                }
 
-                with patch.object(orchestrator.presenter, 'present', new_callable=AsyncMock) as mock_present:
-                    mock_present.return_value = "Response"
+                result = await orchestrator.process({"prompt": "Test query"})
 
-                    result = await orchestrator.process({"prompt": "Test query"})
-
-        # Steps should be included in result
         assert "steps" in result
         mock_step_tracker.get_steps.assert_called()
 

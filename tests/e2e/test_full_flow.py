@@ -453,9 +453,9 @@ class TestMultiAgentFlow:
                 assert "STUDENT_AGENT" in step_modules, \
                     f"STUDENT_AGENT should appear in steps for profile operations, got: {step_modules}"
 
-                # ORCHESTRATOR should coordinate
-                assert "ORCHESTRATOR" in step_modules, \
-                    f"ORCHESTRATOR should appear in steps, got: {step_modules}"
+                # PLANNER or ORCHESTRATOR should coordinate
+                assert "PLANNER" in step_modules or "ORCHESTRATOR" in step_modules, \
+                    f"PLANNER or ORCHESTRATOR should appear in steps, got: {step_modules}"
 
                 # Verify response mentions allergies (the topic was addressed)
                 response_text = data.get("response", "").lower()
