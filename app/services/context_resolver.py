@@ -72,8 +72,6 @@ class ContextResolver:
             "recent_topic": None,
             "previous_agents": [],
             "history_summary": "",
-            "was_class_wide": False,
-            "mentioned_students": [],
         }
 
         if not history or len(history) <= 1:
@@ -93,24 +91,6 @@ class ContextResolver:
             agent = msg.get("agent_used")
             if agent and agent not in context["previous_agents"]:
                 context["previous_agents"].append(agent)
-
-        # Second pass: detect class-wide responses from the most recent assistant message
-        for msg in reversed(history[:-1]):
-            if msg.get("role") == "assistant":
-                content = msg.get("content", "")
-                all_names = STUDENT_NAME_PATTERN.findall(content)
-                # Deduplicate (case-insensitive) while preserving order
-                seen = set()
-                unique_names = []
-                for name in all_names:
-                    key = name.lower()
-                    if key not in seen:
-                        seen.add(key)
-                        unique_names.append(name)
-                if len(unique_names) >= 3:
-                    context["was_class_wide"] = True
-                    context["mentioned_students"] = unique_names
-                break  # Only check the most recent assistant message
 
         # Create a brief summary of recent conversation
         recent_msgs = history[-4:-1] if len(history) > 4 else history[:-1]

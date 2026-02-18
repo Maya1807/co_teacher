@@ -50,7 +50,6 @@ class PlanExecutor:
         self,
         plan: ExecutionPlan,
         student_context: Optional[Dict[str, Any]] = None,
-        all_students_context: Optional[list] = None,
         context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
@@ -59,7 +58,6 @@ class PlanExecutor:
         Args:
             plan: The execution plan from LLMPlanner
             student_context: Optional resolved student profile context
-            all_students_context: Optional list of all student profiles (for class-wide queries)
             context: Optional request context (teacher_id, etc.)
 
         Returns:
@@ -74,9 +72,6 @@ class PlanExecutor:
             input_data = self._build_input_data(
                 step, plan, student_context
             )
-
-            if all_students_context:
-                input_data["all_students_context"] = all_students_context
 
             # Execute the agent
             agent = self._agents.get(step.agent)

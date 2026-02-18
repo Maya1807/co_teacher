@@ -180,34 +180,6 @@ class TestCreatePlan:
         assert plan.steps[0].agent == AgentType.RAG_AGENT
 
     @pytest.mark.asyncio
-    async def test_create_plan_with_class_wide_context(self, planner, mock_llm_client):
-        """When was_class_wide=True, the planner prompt includes the flag and mentioned students."""
-        mock_llm_client.complete.return_value = {
-            "content": json.dumps({
-                "student_name": "ALL_STUDENTS",
-                "steps": [
-                    {"step_index": 0, "agent": "RAG_AGENT", "task": "Find strategies for loud sounds for all students", "depends_on": []},
-                ],
-            }),
-            "tokens_used": {"input": 80, "output": 30},
-        }
-
-        conv_context = {
-            "recent_student": "Alex",
-            "previous_agents": ["RAG_AGENT"],
-            "history_summary": "Discussed class-wide strategies",
-            "was_class_wide": True,
-            "mentioned_students": ["Alex", "Morgan", "Jordan"],
-        }
-
-        await planner.create_plan("What about the loud sounds?", conversation_context=conv_context)
-
-        call_args = mock_llm_client.complete.call_args
-        user_msg = call_args.kwargs["messages"][1]["content"]
-        assert "class-wide: True" in user_msg
-        assert "Alex, Morgan, Jordan" in user_msg
-
-    @pytest.mark.asyncio
     async def test_create_plan_invalid_depends_on(self, planner, mock_llm_client):
         """Returns fallback plan on forward references in depends_on."""
         mock_llm_client.complete.return_value = {

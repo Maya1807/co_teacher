@@ -216,11 +216,8 @@ class Orchestrator(BaseAgent):
             student_name = conv_context["recent_student"]
 
         student_context = None
-        all_students_context = None
 
-        if student_name == "ALL_STUDENTS":
-            all_students_context = await self.memory.list_students()
-        elif student_name or plan.needs_student_context:
+        if student_name or plan.needs_student_context:
             student_context = await self.student_agent.get_student_context(
                 student_name=student_name
             )
@@ -229,7 +226,6 @@ class Orchestrator(BaseAgent):
         result = await self.plan_executor.execute(
             plan=plan,
             student_context=student_context,
-            all_students_context=all_students_context,
             context=context,
         )
 

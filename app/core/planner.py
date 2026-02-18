@@ -103,17 +103,13 @@ class LLMPlanner:
         recent_student = conv.get("recent_student")
         previous_agents = conv.get("previous_agents", [])
         history_summary = conv.get("history_summary")
-        was_class_wide = conv.get("was_class_wide", False)
-        mentioned_students = conv.get("mentioned_students", [])
 
-        has_context = recent_student or previous_agents or history_summary or was_class_wide
+        has_context = recent_student or previous_agents or history_summary
         if has_context:
             prompt += PLANNER_CONTEXT_ADDENDUM.format(
                 recent_student=recent_student or "Unknown",
                 history_summary=history_summary or "No prior messages",
                 previous_agents=", ".join(previous_agents) or "None",
-                was_class_wide=was_class_wide,
-                mentioned_students=", ".join(mentioned_students) if mentioned_students else "None",
             )
 
         response = await self.llm.complete(
