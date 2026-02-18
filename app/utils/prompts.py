@@ -17,7 +17,12 @@ Available agents:
 
 STUDENT_AGENT — Retrieves or updates stored student profiles.
   Stored fields: name, grade, disability_type, learning_style, triggers, successful_methods, failed_methods, notes.
-  Use when: the teacher wants to know or update information already stored about a specific student.
+  Use when:
+    - The teacher explicitly asks to view or update information about a specific student.
+    - The teacher's message contains NEW information about a student (e.g., new medication,
+      a recent incident, feedback from parents, a change in behavior), even if the teacher
+      did NOT explicitly ask to update the profile. In this case, extract the new information
+      and update the student's profile IN ADDITION to handling the teacher's actual request.
 
 RAG_AGENT — Recommends evidence-based teaching strategies.
   Use when: the teacher wants NEW teaching strategies, methods, or recommendations (not what's in a profile).
@@ -36,12 +41,6 @@ Rules for building plans:
 5. For personalized strategy queries (e.g., "What strategies work for Alex?"), use STUDENT_AGENT first to get the profile, then RAG_AGENT with depends_on to find strategies fitting that profile.
 6. ADMIN_AGENT handles its own student lookup internally — don't add a STUDENT_AGENT step just for admin docs unless the query also asks for profile info.
 7. For update-only queries ("Alex had a meltdown during the fire drill"), use a single STUDENT_AGENT step.
-8. For whole-class or all-students queries (e.g., "tips for all my students", "make this work for everyone", "how do I handle the whole class"):
-   - Set student_name to "ALL_STUDENTS"
-   - Use RAG_AGENT with a task that includes the activity/lesson details
-   - Do NOT use STUDENT_AGENT — the system will automatically load all student profiles when it sees "ALL_STUDENTS"
-9. If the query mentions MULTIPLE specific students by name (e.g., "how do I handle Alex and Morgan"), set student_name to "ALL_STUDENTS" and use RAG_AGENT.
-10. If the query mentions exactly ONE student by name, use that student's name as student_name — even if the previous response was class-wide. Single-student follow-ups should NOT trigger ALL_STUDENTS.
 
 Respond with JSON ONLY:
 {
@@ -67,12 +66,8 @@ Conversation context (from prior messages):
 - Student from prior messages: {recent_student}
 - Recent conversation: {history_summary}
 - Agents already used this conversation: {previous_agents}
-- Previous response was class-wide: {was_class_wide}
-- Students named in previous response: {mentioned_students}
 
-IMPORTANT: If the request uses pronouns like "he", "she", "they", "him", "her", or "the student" without naming anyone, it likely refers to the student from prior messages above. Extract that as the student_name.
-
-If was_class_wide is true and the query is a vague follow-up (no specific student name, e.g., "what about the loud part?"), set student_name to "ALL_STUDENTS" and use RAG_AGENT to continue the class-wide context."""
+IMPORTANT: If the request uses pronouns like "he", "she", "they", "him", "her", or "the student" without naming anyone, it likely refers to the student from prior messages above. Extract that as the student_name."""
 
 PLAN_SYNTHESIS_PROMPT = """Synthesize the results from multiple agents into one coherent response for the teacher.
 
@@ -272,9 +267,6 @@ Structure recommendations as:
 - How to implement
 - Best for (which students/situations)
 
-Use plain language a busy teacher would appreciate. Avoid jargon (UDL, prompt hierarchy, least-to-most) unless the teacher used those terms first.
-When an activity involves sensory factors (loud sounds, textures, bright lights, unexpected events), proactively flag which students' triggers match and suggest specific accommodations.
-
 Output content only. Tone is applied at the final presentation layer."""
 
 RAG_AGENT_SEARCH_PROMPT = """Find strategies for a specific student.
@@ -306,26 +298,6 @@ Retrieved Methods:
 {retrieved_methods}
 
 Provide helpful recommendations based on the retrieved teaching methods."""
-
-RAG_AGENT_CLASS_WIDE_PROMPT = """Recommend strategies for a whole-class activity, personalized to each student who needs accommodations.
-
-Teacher's Question: {query}
-
-All Student Profiles:
-{all_student_profiles}
-
-Retrieved Teaching Methods:
-{retrieved_methods}
-
-Instructions:
-- For each student whose profile is relevant to this activity, give specific named advice.
-- Flag any safety concerns (allergies, medical info in notes, sensory triggers that match activity elements) proactively.
-- Use plain language — no jargon.
-- Students whose profiles have no relevance to the activity can be omitted.
-- Use a dash-list with student names as anchors.
-- End with one or two tips that apply to the whole class.
-
-Output content only. Tone is applied at the final presentation layer."""
 
 
 # ==================== ADMIN_AGENT PROMPTS ====================
@@ -558,7 +530,6 @@ Example: "For Jamie, visual schedules have worked well because..."
 - No headers, no numbered lists, no formal structure
 - Reference students by name naturally when relevant
 - End with a practical next step or gentle offer to help
-- When the response covers multiple students by name, you may use more space — up to 2 sentences per student plus a short intro/closing. Use a dash-list with student names as anchors.
 
 ═══ WHAT TO AVOID ═══
 
@@ -652,37 +623,6 @@ def format_teaching_methods(methods: list) -> str:
         formatted.append("\n".join(parts))
 
     return "\n\n".join(formatted)
-
-
-def format_all_student_profiles(profiles: list) -> str:
-    """Format a list of student profiles concisely for class-wide prompts."""
-    if not profiles:
-        return "No student profiles available"
-
-    formatted = []
-    for profile in profiles:
-        name = profile.get("name", "Unknown")
-        parts = [f"- {name}"]
-
-        disability = profile.get("disability_type")
-        if disability:
-            parts.append(f"  Disability: {disability}")
-
-        triggers = profile.get("triggers")
-        if triggers:
-            parts.append(f"  Triggers: {', '.join(triggers[:5])}")
-
-        notes = profile.get("notes")
-        if notes:
-            parts.append(f"  Notes: {notes[:150]}")
-
-        successful = profile.get("successful_methods")
-        if successful:
-            parts.append(f"  What works: {', '.join(successful[:3])}")
-
-        formatted.append("\n".join(parts))
-
-    return "\n".join(formatted)
 
 
 def format_daily_context(context: list) -> str:
