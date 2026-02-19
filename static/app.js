@@ -342,7 +342,17 @@ function addBotMessage(content, steps = []) {
             <div class="message-bubble" ${hasSteps ? `onclick="openTrace(${messageId})"` : ''}>
                 ${formattedContent}
             </div>
-            <span class="message-time">${timeStr}</span>
+            <div class="message-footer">
+                <span class="message-time">${timeStr}</span>
+                ${hasSteps ? `
+                    <button class="trace-button" onclick="openTrace(${messageId})" title="View execution trace" aria-label="View execution trace">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                        <span>Trace (${steps.length})</span>
+                    </button>
+                ` : ''}
+            </div>
         </div>
     `;
 
@@ -459,6 +469,11 @@ function renderTraceSteps(steps) {
             ? step.response
             : JSON.stringify(step.response, null, 2);
 
+        // Auto-open first step
+        if (index === 0) {
+            stepDiv.classList.add('open');
+        }
+
         stepDiv.innerHTML = `
             <div class="step-header" onclick="toggleStep(${index})">
                 <span class="step-module">${escapeHtml(moduleName)}</span>
@@ -468,14 +483,32 @@ function renderTraceSteps(steps) {
                 <div class="step-section">
                     <div class="step-section-header">
                         <span class="step-section-label">Prompt</span>
-                        <button class="copy-btn" onclick="copyText(this, 'prompt', ${index})">Copy</button>
+                        <div class="button-group">
+                            <button class="copy-btn" onclick="copyText(this, 'prompt', ${index})">Copy</button>
+                            <button class="expand-btn" onclick="openExpandModal('prompt', ${index})" title="View full prompt">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15 3 21 3 21 9"/>
+                                    <polyline points="9 21 3 21 3 15"/>
+                                    <line x1="15" y1="9" x2="3" y2="21"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <pre>${escapeHtml(promptText)}</pre>
                 </div>
                 <div class="step-section">
                     <div class="step-section-header">
                         <span class="step-section-label">Response</span>
-                        <button class="copy-btn" onclick="copyText(this, 'response', ${index})">Copy</button>
+                        <div class="button-group">
+                            <button class="copy-btn" onclick="copyText(this, 'response', ${index})">Copy</button>
+                            <button class="expand-btn" onclick="openExpandModal('response', ${index})" title="View full response">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15 3 21 3 21 9"/>
+                                    <polyline points="9 21 3 21 3 15"/>
+                                    <line x1="15" y1="9" x2="3" y2="21"/>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                     <pre>${escapeHtml(responseText)}</pre>
                 </div>
@@ -582,11 +615,68 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+/**
+ * Open modal with full expanded view of prompt/response
+ */
+function openExpandModal(type, stepIndex) {
+    const message = messages.find(m => m.id === currentTraceMessageId);
+    if (!message || !message.steps[stepIndex]) return;
+
+    const step = message.steps[stepIndex];
+    let content = type === 'prompt' ? step.prompt : step.response;
+
+    if (typeof content !== 'string') {
+        content = JSON.stringify(content, null, 2);
+    }
+
+    const modal = document.getElementById('expand-modal');
+    const overlay = document.getElementById('expand-modal-overlay');
+    const modalTitle = document.getElementById('expand-modal-title');
+    const modalContent = document.getElementById('expand-modal-content');
+
+    modalTitle.textContent = `${step.module} - ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+    modalContent.textContent = content;
+
+    modal.classList.add('open');
+    overlay.classList.add('open');
+}
+
+/**
+ * Close expanded view modal
+ */
+function closeExpandModal() {
+    const modal = document.getElementById('expand-modal');
+    const overlay = document.getElementById('expand-modal-overlay');
+    modal.classList.remove('open');
+    overlay.classList.remove('open');
+}
+
+/**
+ * Copy full modal content to clipboard
+ */
+function copyModalContent() {
+    const modalContent = document.getElementById('expand-modal-content');
+    const text = modalContent.textContent;
+
+    navigator.clipboard.writeText(text).then(() => {
+        const button = event.target;
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        setTimeout(() => {
+            button.textContent = originalText;
+        }, 1500);
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
+    });
+}
+
 // Keyboard handlers
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeTrace();
         closeClassSidebar();
+        closeExpandModal();
     }
 });
 

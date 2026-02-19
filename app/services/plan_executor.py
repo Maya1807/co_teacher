@@ -239,8 +239,9 @@ class PlanExecutor:
                 "num_steps": len(plan.steps),
             },
             response={
-                "content": content[:200],
-                "tokens_used": response.get("tokens_used"),
+                "content": content,
+                "tokens": response.get("tokens_used"),
+                "cost": response.get("cost", 0),
             },
         )
 

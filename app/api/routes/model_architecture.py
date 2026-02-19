@@ -17,18 +17,19 @@ ARCHITECTURE_DESCRIPTION = {
     "description": (
         "The Proactive Co-Teacher uses a multi-agent architecture with a central "
         "Orchestrator that coordinates four specialized agents. The Orchestrator "
-        "delegates to internal services: ConversationService, ContextResolver, "
-        "Router, AgentExecutor, ResponseCombiner, and Presenter. The system uses "
-        "rule-based routing to minimize LLM costs, falling back to LLM routing "
-        "only when needed."
+        "delegates to planning services (ConversationService, ContextResolver, "
+        "LLMPlanner) and execution services (PlanExecutor, Presenter). An LLM-based "
+        "planner decomposes queries into typed steps, and PlanExecutor dispatches each "
+        "step to the appropriate agent. All LLM calls are tracked via StepTracker and "
+        "logged to Supabase for cost monitoring."
     ),
     "modules": {
         "note": "Module names match step_tracker.VALID_MODULES for consistency",
         "ORCHESTRATOR": (
-            "Central coordinator that receives all requests. Delegates to internal "
-            "services: ConversationService (persistence), ContextResolver (context "
-            "extraction), Router (query routing), AgentExecutor (agent dispatch), "
-            "ResponseCombiner (multi-agent synthesis), and Presenter (voice transformation)."
+            "Central coordinator that receives all requests. Manages the full pipeline: "
+            "ConversationService (persistence), ContextResolver (context extraction), "
+            "LLMPlanner (query decomposition into typed steps), PlanExecutor (step-by-step "
+            "agent dispatch), and Presenter (voice transformation)."
         ),
         "STUDENT_AGENT": (
             "Manages student profiles. Retrieves and updates triggers, successful "
@@ -36,9 +37,9 @@ ARCHITECTURE_DESCRIPTION = {
             "updates from teacher queries."
         ),
         "RAG_AGENT": (
-            "Searches a teaching methods knowledge base using semantic search. "
-            "Provides evidence-based strategy recommendations. Excludes methods "
-            "that have failed for the specific student."
+            "Searches a teaching methods knowledge base using semantic search via "
+            "Pinecone. Provides evidence-based strategy recommendations. Excludes "
+            "methods that have failed for the specific student."
         ),
         "ADMIN_AGENT": (
             "Generates administrative documents including IEP reports, parent "
@@ -50,38 +51,41 @@ ARCHITECTURE_DESCRIPTION = {
         )
     },
     "services": {
-        "ConversationService": "Handles conversation CRUD and message storage",
-        "ContextResolver": "Extracts context from history, resolves student identity",
-        "Router": "Rule-based routing with LLM fallback for ambiguous queries",
-        "AgentExecutor": "Simple dispatch to appropriate agents",
-        "ResponseCombiner": "Synthesizes multi-agent responses for personalized queries",
-        "Presenter": "Optional voice transformation for user-facing responses"
+        "ConversationService": "Handles conversation CRUD and message persistence in Supabase",
+        "ContextResolver": "Extracts context from conversation history, resolves student identity",
+        "LLMPlanner": "Decomposes teacher queries into typed plan steps (student_lookup, rag_search, admin_doc, predict, synthesize)",
+        "PlanExecutor": "Executes plan steps sequentially, dispatching to appropriate agents and synthesizing multi-step results",
+        "Presenter": "Transforms raw agent output into the teacher's preferred communication voice"
     },
     "memory": {
         "Supabase (Short-term)": (
-            "Conversations, messages, daily context, response cache, student records"
+            "Students, conversations, messages, daily context, events, "
+            "schedule templates, budget tracking, response cache, alerts, pending feedback"
         ),
         "Pinecone (Long-term)": (
-            "Student profile embeddings, teaching methods knowledge base, interventions"
+            "Student profile embeddings (student-profiles namespace), "
+            "teaching methods knowledge base (teaching-methods namespace)"
         )
     },
     "data_flow": [
         "1. Teacher sends query via POST /api/execute",
-        "2. ConversationService stores user message and retrieves history",
-        "3. ContextResolver extracts conversation context (recent student, etc.)",
-        "4. Router matches patterns/keywords to determine target agent(s)",
-        "5. If low confidence, Router uses LLM for routing decision",
-        "6. For single-agent: AgentExecutor dispatches to appropriate agent",
-        "7. For multi-agent: ResponseCombiner synthesizes personalized response",
-        "8. Presenter applies voice transformation (optional)",
-        "9. All steps logged to StepTracker and returned in response"
+        "2. StepTracker initialized for request-scoped tracing",
+        "3. ConversationService stores user message and retrieves history",
+        "4. ContextResolver extracts conversation context (recent student, topic, etc.)",
+        "5. LLMPlanner decomposes query into typed plan steps via LLM call",
+        "6. PlanExecutor iterates plan steps, dispatching each to the appropriate agent",
+        "7. For multi-step plans, PlanExecutor synthesizes combined results via LLM",
+        "8. Presenter applies voice transformation to the final response",
+        "9. ConversationService stores assistant response",
+        "10. All steps (with cost, tokens, timing) returned in response"
     ],
     "cost_optimizations": [
-        "Rule-based routing saves ~40% of LLM routing calls",
-        "Response caching for RAG and Admin queries",
-        "Optional presentation layer (can skip voice transformation)",
-        "Budget tracking with hard limits ($13 default)",
-        "Lazy initialization of agents and services"
+        "LLM-based planning decomposes complex queries into minimal agent calls",
+        "Two-tier response caching (Supabase + in-memory) for RAG and Admin queries",
+        "Budget tracking with hard limits ($13 default) and async lock",
+        "All LLM calls logged to Supabase budget_tracking for monitoring",
+        "Lazy initialization of agents and services",
+        "Optional presentation layer (can skip voice transformation)"
     ],
     "diagram_source": "/static/architecture.mmd"
 }

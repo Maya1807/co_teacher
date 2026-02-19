@@ -135,8 +135,9 @@ class LLMPlanner:
                 "query_snippet": query[:100],
             },
             response={
-                "content": content[:300],
-                "tokens_used": response.get("tokens_used"),
+                "content": content,
+                "tokens": response.get("tokens_used"),
+                "cost": response.get("cost", 0),
             },
         )
 

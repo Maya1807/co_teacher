@@ -82,7 +82,7 @@ class BaseAgent(ABC):
             module=self.MODULE_NAME,
             prompt=prompt_summary,
             response={
-                "content": content[:500] if content else "(empty response)",
+                "content": content if content else "(empty response)",
                 "tokens": result.get("tokens_used", 0),
                 "cost": result.get("cost", 0)
             }

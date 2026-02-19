@@ -171,6 +171,26 @@
                 <!-- Steps accordion here -->
             </div>
         </div>
+
+        <!-- EXPAND MODAL OVERLAY -->
+        <div id="expand-modal-overlay" class="modal-overlay" onclick="closeExpandModal()"></div>
+
+        <!-- EXPAND MODAL -->
+        <div id="expand-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="expand-modal-title">Full View</h3>
+                    <button class="close-btn" onclick="closeExpandModal()" aria-label="Close modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <pre id="expand-modal-content"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-btn" onclick="copyModalContent()">Copy All</button>
+                    <button class="modal-btn primary" onclick="closeExpandModal()">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="/static/app.js"></script>

@@ -12,7 +12,7 @@ from app.core.llm_client import get_llm_client
 
 async def seed_students():
     """Seed student profiles into Pinecone."""
-    data_file = Path(__file__).parent.parent / "data" / "sample_students.json"
+    data_file = Path(__file__).parent.parent / "data" / "seed_students.json"
 
     if not data_file.exists():
         print(f"ERROR: {data_file} not found")

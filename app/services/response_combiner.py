@@ -162,8 +162,9 @@ class ResponseCombiner:
                 "query_snippet": query[:100]
             },
             response={
-                "content": raw_content[:200],
-                "tokens_used": response.get("tokens_used")
+                "content": raw_content,
+                "tokens": response.get("tokens_used"),
+                "cost": response.get("cost", 0)
             }
         )
 
