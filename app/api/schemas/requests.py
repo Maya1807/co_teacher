@@ -10,7 +10,6 @@ class ExecuteRequest(BaseModel):
 
     prompt: str = Field(
         ...,
-        min_length=1,
         max_length=2000,
         description="The teacher's query or request",
         examples=["What strategies work for ADHD students?"]
