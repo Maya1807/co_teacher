@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 # Module names must match step_tracker.VALID_MODULES
-VALID_MODULES = ["ORCHESTRATOR", "STUDENT_AGENT", "RAG_AGENT", "ADMIN_AGENT", "PREDICT_AGENT"]
+VALID_MODULES = ["ORCHESTRATOR", "PLANNER", "STUDENT_AGENT", "RAG_AGENT", "ADMIN_AGENT", "PREDICT_AGENT"]
 
 
 @router.get("/agent_info")
@@ -33,9 +33,9 @@ async def get_agent_info() -> Dict[str, Any]:
             "four specialized agents: STUDENT_AGENT (student profiles and triggers), "
             "RAG_AGENT (evidence-based teaching strategies via vector search), "
             "ADMIN_AGENT (IEP reports, parent communications, summaries), and "
-            "PREDICT_AGENT (daily briefings and risk predictions). The system uses "
-            "rule-based routing to minimize LLM costs, falling back to LLM routing "
-            "only when needed."
+            "PREDICT_AGENT (daily briefings and risk predictions). A dedicated PLANNER "
+            "module decomposes each teacher query into a typed execution plan, minimizing "
+            "unnecessary LLM calls and dispatching only the required agents."
         ),
         "purpose": (
             "To reduce administrative burden on special education teachers by providing "
@@ -68,17 +68,15 @@ async def get_agent_info() -> Dict[str, Any]:
                 ),
                 "steps": [
                     {
-                        "module": "ORCHESTRATOR",
+                        "module": "PLANNER",
                         "prompt": {
-                            "action": "route_query",
-                            "query": "Alex is getting frustrated during math. What strategies should I try?",
-                            "context": {"session_id": "example-session"}
+                            "action": "create_plan",
+                            "query_snippet": "Alex is getting frustrated during math. What strategies should I try?"
                         },
                         "response": {
-                            "routed_to": ["STUDENT_AGENT", "RAG_AGENT"],
-                            "is_multi_agent": True,
-                            "confidence": 0.92,
-                            "extracted_entities": {"name": "Alex"}
+                            "content": "Plan: [student_lookup for Alex] → [rag_search for math frustration strategies]",
+                            "tokens": 180,
+                            "cost": 0.0003
                         }
                     },
                     {
@@ -120,13 +118,14 @@ async def get_agent_info() -> Dict[str, Any]:
                     {
                         "module": "ORCHESTRATOR",
                         "prompt": {
-                            "action": "combine_responses",
+                            "action": "synthesize",
                             "student_context": "Alex profile retrieved",
                             "rag_results": "3 methods found"
                         },
                         "response": {
-                            "action": "synthesize_personalized_response",
-                            "agents_used": ["ORCHESTRATOR", "STUDENT_AGENT", "RAG_AGENT"]
+                            "action": "present_response",
+                            "agents_used": ["PLANNER", "STUDENT_AGENT", "RAG_AGENT"],
+                            "cost": 0.0004
                         }
                     }
                 ]
@@ -155,16 +154,15 @@ async def get_agent_info() -> Dict[str, Any]:
                 ),
                 "steps": [
                     {
-                        "module": "ORCHESTRATOR",
+                        "module": "PLANNER",
                         "prompt": {
-                            "action": "route_query",
-                            "query": "Draft a progress report for Jordan's IEP meeting"
+                            "action": "create_plan",
+                            "query_snippet": "Draft a progress report for Jordan's IEP meeting"
                         },
                         "response": {
-                            "routed_to": ["ADMIN_AGENT"],
-                            "is_multi_agent": False,
-                            "confidence": 0.95,
-                            "document_type": "iep"
+                            "content": "Plan: [student_lookup for Jordan] → [admin_doc iep_progress_report]",
+                            "tokens": 160,
+                            "cost": 0.0002
                         }
                     },
                     {
@@ -219,16 +217,15 @@ async def get_agent_info() -> Dict[str, Any]:
                 ),
                 "steps": [
                     {
-                        "module": "ORCHESTRATOR",
+                        "module": "PLANNER",
                         "prompt": {
-                            "action": "route_query",
-                            "query": "What strategies work for students with sensory processing issues?"
+                            "action": "create_plan",
+                            "query_snippet": "What strategies work for students with sensory processing issues?"
                         },
                         "response": {
-                            "routed_to": ["RAG_AGENT"],
-                            "is_multi_agent": False,
-                            "confidence": 0.88,
-                            "query_type": "general_strategy"
+                            "content": "Plan: [rag_search for sensory processing strategies]",
+                            "tokens": 140,
+                            "cost": 0.0002
                         }
                     },
                     {
@@ -276,16 +273,15 @@ async def get_agent_info() -> Dict[str, Any]:
                 ),
                 "steps": [
                     {
-                        "module": "ORCHESTRATOR",
+                        "module": "PLANNER",
                         "prompt": {
-                            "action": "route_query",
-                            "query": "What should I watch for today? Any students at risk?"
+                            "action": "create_plan",
+                            "query_snippet": "What should I watch for today? Any students at risk?"
                         },
                         "response": {
-                            "routed_to": ["PREDICT_AGENT"],
-                            "is_multi_agent": False,
-                            "confidence": 0.93,
-                            "query_type": "daily_briefing"
+                            "content": "Plan: [predict daily_briefing]",
+                            "tokens": 130,
+                            "cost": 0.0002
                         }
                     },
                     {
@@ -318,16 +314,15 @@ async def get_agent_info() -> Dict[str, Any]:
                 ),
                 "steps": [
                     {
-                        "module": "ORCHESTRATOR",
+                        "module": "PLANNER",
                         "prompt": {
-                            "action": "route_query",
-                            "query": "Update: movement breaks are really helping Alex focus better"
+                            "action": "create_plan",
+                            "query_snippet": "Update: movement breaks are really helping Alex focus better"
                         },
                         "response": {
-                            "routed_to": ["STUDENT_AGENT"],
-                            "is_multi_agent": False,
-                            "confidence": 0.91,
-                            "detected_intent": "profile_update"
+                            "content": "Plan: [student_lookup for Alex, detect profile update]",
+                            "tokens": 145,
+                            "cost": 0.0002
                         }
                     },
                     {

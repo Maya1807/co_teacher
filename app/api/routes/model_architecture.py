@@ -10,7 +10,7 @@ import os
 router = APIRouter()
 
 # Module names must match step_tracker.VALID_MODULES
-VALID_MODULES = ["ORCHESTRATOR", "STUDENT_AGENT", "RAG_AGENT", "ADMIN_AGENT", "PREDICT_AGENT"]
+VALID_MODULES = ["ORCHESTRATOR", "PLANNER", "STUDENT_AGENT", "RAG_AGENT", "ADMIN_AGENT", "PREDICT_AGENT"]
 
 # Architecture description
 ARCHITECTURE_DESCRIPTION = {
@@ -30,6 +30,11 @@ ARCHITECTURE_DESCRIPTION = {
             "ConversationService (persistence), ContextResolver (context extraction), "
             "LLMPlanner (query decomposition into typed steps), PlanExecutor (step-by-step "
             "agent dispatch), and Presenter (voice transformation)."
+        ),
+        "PLANNER": (
+            "LLM-based query decomposition layer. Receives the teacher's query and "
+            "decomposes it into a typed execution plan (student_lookup, rag_search, "
+            "admin_doc, predict, synthesize steps). Each plan step is logged here."
         ),
         "STUDENT_AGENT": (
             "Manages student profiles. Retrieves and updates triggers, successful "
