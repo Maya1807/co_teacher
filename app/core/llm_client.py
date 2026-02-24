@@ -7,6 +7,7 @@ import httpx
 import hashlib
 from typing import Dict, Any, Optional, List
 from app.config import get_settings
+from app.memory.supabase_client import get_supabase_client
 
 
 class BudgetExceededError(Exception):
@@ -148,6 +149,20 @@ class LLMClient:
         # Extract content
         content = data["choices"][0]["message"]["content"]
 
+        # Log to Supabase for persistent tracking
+        try:
+            supabase = get_supabase_client()
+            await supabase.log_llm_usage(
+                model=model,
+                prompt_tokens=prompt_tokens,
+                completion_tokens=completion_tokens,
+                cost=actual_cost,
+                agent_type="UNKNOWN"  # Will be set by agents when calling this
+            )
+        except Exception as e:
+            # Don't fail the request if logging fails
+            print(f"Warning: Failed to log LLM usage to Supabase: {e}")
+
         return {
             "content": content,
             "tokens_used": {
@@ -214,6 +229,20 @@ class LLMClient:
 
         # Extract embedding
         embedding = data["data"][0]["embedding"]
+
+        # Log to Supabase for persistent tracking
+        try:
+            supabase = get_supabase_client()
+            await supabase.log_llm_usage(
+                model=model,
+                prompt_tokens=tokens_used,
+                completion_tokens=0,
+                cost=actual_cost,
+                agent_type="EMBEDDING"
+            )
+        except Exception as e:
+            # Don't fail the request if logging fails
+            print(f"Warning: Failed to log embedding usage to Supabase: {e}")
 
         return embedding
 

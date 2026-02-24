@@ -19,7 +19,7 @@ async def get_team_info() -> TeamInfoResponse:
         TeamInfoResponse with group info and student list
     """
     return TeamInfoResponse(
-        group_batch_order_number="batch_1_order_9",
+        group_batch_order_number="1_9",
         team_name="avi_yehoraz_maya",
         students=[
             StudentInfo(name="Avi Simkin", email="avi.simkin@campus.technion.ac.il"),

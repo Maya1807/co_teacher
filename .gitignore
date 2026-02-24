@@ -47,3 +47,14 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Local-only project files (not for repo)
+Course Project.pdf
+pdf_extracted.txt
+COMPLIANCE_REPORT.md
+DATABASE_SETUP_GUIDE.md
+SETUP_CHECKLIST.md
+project_requirements.txt
+
+#other
+Course Project.pdf

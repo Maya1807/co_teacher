@@ -16,78 +16,103 @@
 flowchart TB
     %% API Layer
     subgraph API["<b>API Layer</b>"]
-        Execute["<b>/api/execute</b><br/><i>Teacher queries</i>"]
+        direction LR
+        Execute["<b>POST /api/execute</b><br/><i>Teacher queries</i>"]
+        TeamInfo["<b>GET /api/team_info</b>"]
+        AgentInfo["<b>GET /api/agent_info</b>"]
+        ModelArch["<b>GET /api/model_architecture</b>"]
+        Students["<b>GET /api/students</b>"]
+        Schedule["<b>GET /api/schedule/today</b>"]
+        Predictions["<b>GET /api/predictions/today</b>"]
     end
+
+    %% Step Tracker
+    TRACKER["<b>StepTracker</b><br/><i>Request-scoped tracing</i>"]
 
     %% Orchestrator
     subgraph ORCH["<b>ORCHESTRATOR</b>"]
         direction TB
         ORC_MAIN["<b>Orchestrator</b><br/><i>Central Coordinator</i>"]
 
-        subgraph Services["<b>Internal Services</b>"]
+        subgraph Services["<b>Planning Services</b>"]
             direction LR
-            CONV["ConversationService"]
-            CTX["ContextResolver"]
-            ROUTER["Router"]
+            CONV["ConversationService<br/><i>Persistence</i>"]
+            CTX["ContextResolver<br/><i>Context extraction</i>"]
+            PLANNER["<b>PLANNER</b><br/><i>LLM Query Decomposition</i>"]
         end
 
         subgraph Services2["<b>Execution Services</b>"]
             direction LR
-            EXEC["AgentExecutor"]
-            COMB["ResponseCombiner"]
-            PRES["Presenter"]
+            PLANEXEC["PlanExecutor<br/><i>Step-by-step execution</i>"]
+            PRES["Presenter<br/><i>Voice transformation</i>"]
         end
     end
 
     %% Agents
     subgraph Agents["<b>Specialized Agents</b>"]
         direction LR
-        SA["<b>STUDENT_AGENT</b><br/><i>Student Profiles</i>"]
-        RA["<b>RAG_AGENT</b><br/><i>Teaching Methods</i>"]
-        AA["<b>ADMIN_AGENT</b><br/><i>Documents</i>"]
-        PA["<b>PREDICT_AGENT</b><br/><i>Daily Briefings</i>"]
+        SA["<b>STUDENT_AGENT</b><br/><i>Student Profiles &amp;<br/>Implicit Update Detection</i>"]
+        RA["<b>RAG_AGENT</b><br/><i>Teaching Methods<br/>via Vector Search</i>"]
+        AA["<b>ADMIN_AGENT</b><br/><i>IEPs, Reports,<br/>Parent Emails</i>"]
+        PA["<b>PREDICT_AGENT</b><br/><i>Risk Analysis &amp;<br/>Daily Briefings</i>"]
     end
+
+    %% Cache
+    CACHE["<b>ResponseCache</b><br/><i>Two-tier: Supabase + In-memory</i>"]
 
     %% Memory
     subgraph Memory["<b>Memory Layer</b>"]
+        direction TB
+        MM["<b>MemoryManager</b><br/><i>Unified interface</i>"]
         direction LR
-        SB[("<b>Supabase</b><br/><i>Short-term Memory</i><br/>Conversations<br/>Messages<br/>Daily Context")]
-        PC[("<b>Pinecone</b><br/><i>Long-term Memory</i><br/>Student Profiles<br/>Teaching Methods<br/>Interventions")]
+        SB[("<b>Supabase</b><br/><i>Short-term Memory</i><br/>Students · Conversations<br/>Messages · Daily Context<br/>Events · Budget Tracking")]
+        PC[("<b>Pinecone</b><br/><i>Long-term Memory</i><br/>Student Embeddings<br/>Teaching Methods KB")]
     end
 
     %% LLM
     subgraph LLM["<b>LLM Provider</b>"]
-        LLMOD["<b>LLMod.ai</b><br/><i>gpt-5-mini</i>"]
+        LLMOD["<b>LLMod.ai</b><br/><i>gpt-5-mini (chat)</i><br/><i>text-embedding-3-small</i>"]
+        BUDGET["<b>Budget Tracker</b><br/><i>$13 limit · async lock</i>"]
     end
 
     %% Main flow
-    Execute --> ORC_MAIN
+    Execute --> TRACKER
+    TRACKER --> ORC_MAIN
 
-    %% Orchestrator to services
+    %% Orchestrator internal flow
     ORC_MAIN --> Services
     ORC_MAIN --> Services2
 
-    %% Execution to agents
-    EXEC --> SA & RA & AA & PA
-
-    %% ResponseCombiner to agents (dashed = optional)
-    COMB -.-> SA
-    COMB -.-> RA
-
-    %% Agents to memory
-    SA --> SB & PC
-    RA --> PC
-    AA --> SB
-    PA --> SB
-
-    %% Services to memory
+    %% Planning flow
     CONV --> SB
-    CTX -.-> SA
+    CTX -.->|"scan history"| CONV
+    PLANNER -->|"decompose query"| LLMOD
 
-    %% LLM connections
-    ROUTER -.->|"fallback"| LLMOD
+    %% Execution flow
+    PLANEXEC -->|"dispatch"| SA & RA & AA & PA
+    PLANEXEC -->|"synthesize multi-step"| LLMOD
+    PRES -->|"voice transform"| LLMOD
+
+    %% Agent to memory
+    SA --> MM
+    RA --> MM
+    AA --> MM
+    PA --> MM
+
+    %% Memory manager to stores
+    MM --> SB
+    MM --> PC
+
+    %% Cache connections
+    RA -.->|"check/store"| CACHE
+    CACHE -.-> SB
+
+    %% Agents to LLM
     SA & RA & AA & PA -->|"LLM calls"| LLMOD
-    COMB & PRES -->|"synthesis"| LLMOD
+    LLMOD --> BUDGET
+
+    %% Budget logging
+    BUDGET -.->|"log usage"| SB
 
     %% Styling - Pastel colors with white background
     classDef apiStyle fill:#E3F2FD,stroke:#64B5F6,stroke-width:2px,color:#1565C0,rx:10
@@ -96,13 +121,19 @@ flowchart TB
     classDef agentStyle fill:#E8F5E9,stroke:#81C784,stroke-width:2px,color:#2E7D32,rx:10
     classDef memoryStyle fill:#FFF3E0,stroke:#FFB74D,stroke-width:2px,color:#E65100,rx:10
     classDef llmStyle fill:#EDE7F6,stroke:#B39DDB,stroke-width:2px,color:#4527A0,rx:10
+    classDef cacheStyle fill:#FCE4EC,stroke:#F48FB1,stroke-width:1px,color:#AD1457,rx:8
+    classDef trackerStyle fill:#F1F8E9,stroke:#AED581,stroke-width:1px,color:#558B2F,rx:8
+    classDef mmStyle fill:#FFF8E1,stroke:#FFD54F,stroke-width:1px,color:#F57F17,rx:8
 
-    class Execute apiStyle
+    class Execute,TeamInfo,AgentInfo,ModelArch,Students,Schedule,Predictions apiStyle
     class ORC_MAIN orchStyle
-    class CONV,CTX,ROUTER,EXEC,COMB,PRES serviceStyle
+    class CONV,CTX,PLANNER,PLANEXEC,PRES serviceStyle
     class SA,RA,AA,PA agentStyle
     class SB,PC memoryStyle
-    class LLMOD llmStyle
+    class LLMOD,BUDGET llmStyle
+    class CACHE cacheStyle
+    class TRACKER trackerStyle
+    class MM mmStyle
 
     %% Subgraph styling
     style API fill:#F5F5F5,stroke:#BDBDBD,stroke-width:1px,rx:12

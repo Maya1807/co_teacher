@@ -39,7 +39,7 @@ async def execute_agent(request: ExecuteRequest):
         return ExecuteResponse(
             status="error",
             error="Query cannot be empty",
-            response="",
+            response=None,
             steps=[]
         )
 
@@ -129,7 +129,7 @@ async def execute_agent(request: ExecuteRequest):
         return ExecuteResponse(
             status="error",
             error=str(e),
-            response="An error occurred while processing your request.",
+            response=None,
             steps=[]
         )
 

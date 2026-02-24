@@ -98,9 +98,9 @@ class ExecuteResponse(BaseModel):
         default=None,
         description="Error message if status is 'error'"
     )
-    response: str = Field(
-        ...,
-        description="The main response text"
+    response: Optional[str] = Field(
+        default=None,
+        description="The main response text (null on error)"
     )
     steps: List[StepInfo] = Field(
         ...,
