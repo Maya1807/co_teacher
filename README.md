@@ -1,6 +1,8 @@
 # Co-Teacher: Multi-Agent AI System for Special Education
 
-A multi-agent AI system designed to assist special education teachers with student management, teaching strategies, administrative tasks, and daily predictions. Built as a final project for the AI Agents course.
+A multi-agent AI system designed to assist special education teachers with student management, teaching strategies, administrative tasks, and daily predictions.
+
+**Live Demo**: https://co-teacher-nl17.onrender.com
 
 ## Team Information
 
@@ -39,57 +41,71 @@ The system uses a **multi-agent architecture** with LLM-based planning:
 
 ### Agent Descriptions
 
-| Agent | Purpose | Example Queries |
-|-------|---------|-----------------|
-| **STUDENT_AGENT** | Student profiles, triggers, learning styles, implicit update detection | "What are Alex's triggers?" |
-| **RAG_AGENT** | Evidence-based teaching strategies via Pinecone vector search | "How do I handle a meltdown?" |
-| **ADMIN_AGENT** | IEP reports, parent emails, daily/weekly summaries | "Draft a progress report for Alex" |
-| **PREDICT_AGENT** | Daily briefings, risk analysis against student triggers | "What should I watch for today?" |
+**STUDENT_AGENT** — Manages individualized student profiles including disability type, sensory triggers, successful and failed teaching methods, and learning styles. Detects implicit profile updates from natural teacher messages (e.g., "Alex had a meltdown during the fire drill" automatically flags loud noises as a trigger). Provides student context to all other agents so that every recommendation is personalized.
+- *Example queries*: "What are Alex's triggers?", "Tell me about Jordan's learning style", "Alex had a panic attack during the assembly"
+
+**RAG_AGENT** — Retrieves evidence-based teaching strategies from a vector knowledge base (Pinecone) using semantic search. Filters recommendations by disability type (autism, ADHD, dyslexia, sensory processing, emotional/behavioral) and automatically excludes methods that have previously failed for a specific student. Supports both general strategy queries and student-personalized recommendations.
+- *Example queries*: "What de-escalation techniques work for EBD students?", "How should I teach reading to a student with dyslexia?", "What sensory strategies can I use for Alex?"
+
+**ADMIN_AGENT** — Generates special education administrative documents: IEP progress reports with SMART goals and measurable data, parent communication emails in a warm and professional tone, daily/weekly/monthly classroom summaries, and factual incident reports. Pulls student profiles and daily context observations to ground documents in real data rather than generic templates.
+- *Example queries*: "Draft an IEP progress report for Jordan", "Write an email to Riley's parents about today's incident", "Give me a weekly summary"
+
+**PREDICT_AGENT** — Provides proactive daily briefings by cross-referencing all student triggers against today's scheduled events (fire drills, assemblies, substitute teachers, field trips). Uses rule-based risk calculation (high/medium/low) to flag students who may struggle, then generates actionable intervention suggestions with specific timing and scripts the teacher can use immediately.
+- *Example queries*: "What should I watch for today?", "Any students at risk during the field trip?", "Daily briefing"
 
 ### Services
 
 | Service | Role |
 |---------|------|
-| **ConversationService** | Conversation CRUD and message persistence in Supabase |
-| **ContextResolver** | Extracts context from conversation history, resolves student identity |
-| **LLMPlanner** | Decomposes teacher queries into typed plan steps via LLM |
-| **PlanExecutor** | Executes plan steps sequentially, dispatching to agents and synthesizing results |
-| **Presenter** | Transforms raw agent output into the teacher's communication voice |
+| **ConversationService** | Manages conversation lifecycle — creates sessions, stores messages with role/timestamp, retrieves conversation history for context continuity across follow-up queries |
+| **ContextResolver** | Analyzes recent conversation history to extract the current student being discussed and the active topic, so follow-up queries like "What about his triggers?" resolve correctly without re-stating the student name |
+| **LLMPlanner** | Receives the teacher's query along with conversation context and produces a typed execution plan — a sequence of steps like `student_lookup`, `rag_search`, `admin_doc`, `predict`, each with dependencies, so agents execute in the correct order |
+| **PlanExecutor** | Walks through the plan steps sequentially, dispatching each to the appropriate agent, passing results from earlier steps as context to later ones, and synthesizing combined results for multi-step plans |
+| **Presenter** | Applies voice transformation to raw agent output, producing responses in two tones: warm and supportive for student-facing advice, or concise and professional for administrative documents |
 
 ### Memory Architecture
 
 | Store | Type | Contents |
 |-------|------|----------|
-| **Supabase** | Short-term (PostgreSQL) | `students`, `conversations`, `conversation_messages`, `daily_context`, `events`, `schedule_templates`, `budget_tracking`, `response_cache`, `alerts_sent`, `pending_feedback` |
-| **Pinecone** | Long-term (Vector DB) | `student-profiles` namespace (student embeddings), `teaching-methods` namespace (teaching methods KB) |
+| **Supabase** | Short-term (PostgreSQL) | 10 tables: `students` (profiles), `conversations` and `conversation_messages` (chat history), `daily_context` (teacher observations), `events` and `schedule_templates` (calendar), `budget_tracking` (LLM spend), `response_cache` (cached answers), `alerts_sent` and `pending_feedback` (prediction follow-ups) |
+| **Pinecone** | Long-term (Vector DB) | `student-profiles` namespace (1536-dim embeddings of student profiles for semantic matching), `teaching-methods` namespace (evidence-based teaching strategies knowledge base scraped from ERIC, IRIS Center, and Wikipedia), `interventions` namespace (intervention outcome tracking) |
 
 ### Optimization Strategies
 
-1. **LLM-Based Planning**: Decomposes complex queries into minimal agent calls
-2. **Two-Tier Response Caching**: Supabase + in-memory cache for RAG and Admin queries
-3. **Budget Tracking**: Hard limit ($13 default) with async lock, all calls logged to `budget_tracking`
-4. **Lazy Agent Initialization**: Agents and services created only when first needed
-5. **Optional Presentation**: Voice transformation can be skipped for cost savings
+1. **LLM-Based Planning**: The Planner decomposes each query into the minimal set of agent calls needed — a simple "tell me about Alex" triggers only STUDENT_AGENT, while "prepare Alex for the fire drill" triggers STUDENT_AGENT then RAG_AGENT with dependency chaining
+2. **Two-Tier Response Caching**: Supabase (persistent) + in-memory (fast) cache for RAG, Admin, and Predict queries — identical or semantically similar queries return cached results without additional LLM calls
+3. **Budget Tracking**: Hard spending limit ($13) enforced with an async lock per LLM call; every call logs model, tokens, and cost to `budget_tracking` in Supabase for full auditability
+4. **Lazy Agent Initialization**: Agents, services, and memory clients are created only on first use — if a request only needs RAG_AGENT, the other agents are never instantiated
+5. **Rule-Based Risk Calculation**: PREDICT_AGENT uses deterministic trigger-event matching before calling the LLM, reducing unnecessary generation for low-risk students
 
 ## API Endpoints
 
-### GET /api/team_info
-Returns team member information.
+### Required Endpoints (Course Project)
 
-### GET /api/agent_info
-Returns agent descriptions, purpose, prompt templates, and examples for all agents.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/team_info` | Returns team name, batch/order number, and student members with emails |
+| `GET` | `/api/agent_info` | Returns agent description, purpose, prompt template, and 5 prompt examples with full responses and step traces captured from the live deployment |
+| `GET` | `/api/model_architecture` | Returns a PNG image of the architecture diagram. Add `?format=json` to get JSON metadata describing all modules, memory stores, and cost optimizations |
+| `POST` | `/api/execute` | Main entry point — accepts `{ "prompt": "..." }` and returns `{ status, error, response, steps }` with full execution trace |
 
-### GET /api/model_architecture
-Returns a PNG image of the system architecture (use `?format=json` for metadata).
+### Additional Endpoints
 
-### POST /api/execute
-Main entry point for agent interaction.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/students` | Returns all students with profiles, triggers, and learning preferences |
+| `GET` | `/api/students/{student_id}` | Returns a specific student's detailed profile |
+| `GET` | `/api/schedule/today` | Returns today's scheduled events and activities |
+| `GET` | `/api/predictions/today` | Returns daily risk predictions for all students based on today's schedule |
+| `GET` | `/health` | Health check for Render deployment |
+
+### Example: POST /api/execute
 
 **Request:**
-```json
-{
-  "prompt": "What strategies work for teaching reading to students with dyslexia?"
-}
+```bash
+curl -X POST https://co-teacher-nl17.onrender.com/api/execute \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "What are Alex'\''s sensory triggers and how should I prepare him for the fire drill today?"}'
 ```
 
 **Response:**
@@ -97,59 +113,43 @@ Main entry point for agent interaction.
 {
   "status": "ok",
   "error": null,
-  "response": "Here are evidence-based strategies for teaching reading...",
+  "response": "That sounds like it could be overwhelming for Alex; here's a short, practical plan...",
   "steps": [
     {
-      "module": "ORCHESTRATOR",
-      "prompt": "Planning query...",
-      "response": {"steps": [{"type": "rag_search", "query": "..."}]},
-      "cost": 0.0003,
-      "tokens": 150
+      "module": "PLANNER",
+      "prompt": { "action": "create_plan", "query_snippet": "What are Alex's sensory triggers..." },
+      "response": { "content": "{ \"student_name\": \"Alex\", \"steps\": [...] }", "tokens": { "prompt": 689, "completion": 959, "total": 1648 }, "cost": 0.00068 }
+    },
+    {
+      "module": "STUDENT_AGENT",
+      "prompt": { "action": "get_context", "student": "Alex" },
+      "response": { "found": true, "student_id": "STU001" }
     },
     {
       "module": "RAG_AGENT",
-      "prompt": "Searching teaching methods...",
-      "response": "Found 3 evidence-based strategies...",
-      "cost": 0.0005,
-      "tokens": 280
+      "prompt": { "action": "general_search", "query_snippet": "What are Alex's sensory triggers..." },
+      "response": { "content": "Evidence-based sensory strategies...", "tokens": { "total": 2507 }, "cost": 0.00128 }
     },
     {
       "module": "ORCHESTRATOR",
-      "prompt": "Presenting final response...",
-      "response": "Formatted teacher-friendly response...",
-      "cost": 0.0004,
-      "tokens": 200
+      "prompt": { "action": "present_response", "query_snippet": "What are Alex's sensory triggers..." },
+      "response": { "content": "Final teacher-friendly response...", "tokens": { "total": 2780 }, "cost": 0.00082 }
     }
   ]
 }
 ```
 
-### GET /api/students
-Returns all students with their profiles, triggers, and learning preferences.
-
-### GET /api/students/{student_id}
-Returns a specific student's detailed profile.
-
-### GET /api/schedule/today
-Returns today's scheduled events and activities.
-
-### GET /api/predictions/today
-Returns daily risk predictions for all students based on today's schedule.
-
-### GET /api/execute/budget
-Returns current LLM budget status (spent, remaining, call count).
-
-### GET /health
-Health check endpoint for Render deployment.
-
 ## Technology Stack
 
-- **Framework**: FastAPI (Python 3.11+)
-- **LLM Provider**: LLMod.ai (gpt-5-mini chat, text-embedding-3-small embeddings)
-- **Short-term Memory**: Supabase (PostgreSQL — 10 tables)
-- **Long-term Memory**: Pinecone (1536-dim vectors, cosine similarity)
-- **Frontend**: Vanilla HTML/CSS/JS with step-trace sidebar
-- **Deployment**: Render
+| Layer | Technology | Details |
+|-------|-----------|---------|
+| **Backend** | FastAPI (Python 3.11+) | Async API with Pydantic validation and automatic OpenAPI docs |
+| **LLM** | LLMod.ai | `gpt-5-mini` for chat completions, `text-embedding-3-small` for 1536-dim embeddings |
+| **Short-term Memory** | Supabase (PostgreSQL) | 10 tables covering students, conversations, events, budget tracking, and caching |
+| **Long-term Memory** | Pinecone (Vector DB) | Cosine similarity search across student profiles and teaching methods knowledge base |
+| **Knowledge Base** | ERIC, IRIS Center, Wikipedia | Scraped and chunked evidence-based teaching strategies for special education |
+| **Frontend** | Vanilla HTML/CSS/JS | Chat interface with student sidebar, daily predictions, and step-trace accordion |
+| **Deployment** | Render | Auto-deploy from GitHub `main` branch |
 
 ## Local Development
 
@@ -160,112 +160,109 @@ Health check endpoint for Render deployment.
 ### Installation
 
 ```bash
-# Clone the repository
-git clone <repo-url>
+git clone https://github.com/Maya1807/co_teacher.git
 cd co_teacher
 
-# Create virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
 pip install -r requirements.txt
 ```
 
 ### Environment Variables
 
-Create a `.env` file with:
+Create a `.env` file:
 ```env
 LLMOD_API_KEY=your_api_key
 LLMOD_BASE_URL=https://api.llmod.ai/v1
 SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_key
 PINECONE_API_KEY=your_pinecone_key
-PINECONE_INDEX_NAME=co-teacher
+PINECONE_INDEX_NAME=co-teacher-memory
 ```
 
-### Database Setup
+### Database
 
+The Supabase and Pinecone databases are already populated with student profiles, schedules, and the teaching methods knowledge base. No setup is needed to run the app.
+
+If you ever need to re-seed the data from scratch:
 ```bash
-# Seed Supabase tables (students, schedule_templates, events)
-python scripts/seed_data.py
-
-# Seed Pinecone vectors (student profiles + teaching methods KB)
-python scripts/seed_pinecone.py
+python scripts/seed_data.py       # Supabase (students, schedules, events)
+python scripts/seed_pinecone.py   # Pinecone (student profiles, teaching methods KB)
 ```
 
 ### Running the Server
 
 ```bash
-# Development mode with auto-reload
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# Or using Python directly
-python -m app.main
 ```
 
-Access the application:
-- **Web UI**: http://localhost:8000
+Access the web UI at http://localhost:8000
 
 ## Project Structure
 
 ```
 co_teacher/
 ├── app/
-│   ├── agents/                  # Agent implementations
-│   │   ├── base_agent.py        # Abstract base with step tracking
-│   │   ├── orchestrator.py      # Central coordinator
-│   │   ├── student_agent.py     # Student profile management
-│   │   ├── rag_agent.py         # Teaching strategies (RAG)
-│   │   ├── admin_agent.py       # Administrative documents
-│   │   └── predict_agent.py     # Daily briefings & predictions
+│   ├── agents/                  # Specialized agent implementations
+│   │   ├── base_agent.py        #   Abstract base with step tracking
+│   │   ├── orchestrator.py      #   Central coordinator (lazy init, plan dispatch)
+│   │   ├── student_agent.py     #   Student profiles, triggers, implicit updates
+│   │   ├── rag_agent.py         #   Teaching strategies via Pinecone vector search
+│   │   ├── admin_agent.py       #   IEP reports, parent emails, summaries
+│   │   └── predict_agent.py     #   Daily briefings, risk predictions
 │   ├── api/
 │   │   ├── routes/              # API endpoint handlers
-│   │   │   ├── execute.py       # POST /api/execute
-│   │   │   ├── students.py      # GET /api/students
-│   │   │   ├── schedule.py      # GET /api/schedule/today
-│   │   │   ├── predictions.py   # GET /api/predictions/today
-│   │   │   ├── agent_info.py    # GET /api/agent_info
-│   │   │   ├── team_info.py     # GET /api/team_info
-│   │   │   └── model_architecture.py
+│   │   │   ├── execute.py       #   POST /api/execute (main entry point)
+│   │   │   ├── agent_info.py    #   GET /api/agent_info
+│   │   │   ├── team_info.py     #   GET /api/team_info
+│   │   │   ├── model_architecture.py  # GET /api/model_architecture
+│   │   │   ├── students.py      #   GET /api/students
+│   │   │   ├── schedule.py      #   GET /api/schedule/today
+│   │   │   └── predictions.py   #   GET /api/predictions/today
 │   │   └── schemas/             # Pydantic request/response models
 │   ├── core/
-│   │   ├── planner.py           # LLMPlanner — query decomposition
-│   │   ├── llm_client.py        # LLMod.ai client with budget tracking
-│   │   ├── step_tracker.py      # Request-scoped execution tracing
-│   │   ├── cache.py             # Two-tier response caching
-│   │   └── router.py            # Legacy rule-based router
+│   │   ├── planner.py           # LLMPlanner — query decomposition into typed steps
+│   │   ├── llm_client.py        # LLMod.ai client with budget tracking ($13 limit)
+│   │   ├── step_tracker.py      # Request-scoped execution tracing (ContextVar)
+│   │   ├── cache.py             # Two-tier response caching (Supabase + in-memory)
+│   │   └── router.py            # Rule-based router (regex + keyword fallback)
 │   ├── memory/
-│   │   ├── supabase_client.py   # Short-term memory (PostgreSQL)
-│   │   ├── pinecone_client.py   # Long-term memory (vectors)
-│   │   └── memory_manager.py    # Unified memory interface
+│   │   ├── supabase_client.py   # Short-term memory — PostgreSQL via Supabase
+│   │   ├── pinecone_client.py   # Long-term memory — vector search via Pinecone
+│   │   └── memory_manager.py    # Unified memory interface for all agents
 │   ├── services/
-│   │   ├── conversation_service.py  # Conversation persistence
-│   │   ├── context_resolver.py      # Context extraction from history
-│   │   ├── plan_executor.py         # Step-by-step agent dispatch
-│   │   ├── presenter.py             # Voice transformation
-│   │   ├── agent_executor.py        # Legacy simple dispatch
-│   │   └── response_combiner.py     # Legacy multi-agent synthesis
+│   │   ├── conversation_service.py  # Conversation lifecycle and message persistence
+│   │   ├── context_resolver.py      # Student/topic extraction from chat history
+│   │   ├── plan_executor.py         # Sequential agent dispatch with dependency chaining
+│   │   ├── presenter.py             # Voice transformation (warm vs. professional tone)
+│   │   ├── agent_executor.py        # Simple single-agent dispatch
+│   │   └── response_combiner.py     # Multi-agent result synthesis
 │   ├── utils/
-│   │   └── prompts.py           # System prompt templates
-│   ├── config.py                # App configuration
-│   └── main.py                  # FastAPI application
-├── static/
-│   ├── index.html               # Web UI (chat + dashboard)
-│   ├── app.js                   # Frontend logic with trace sidebar
-│   ├── styles.css               # UI styles
-│   └── architecture.mmd         # Architecture diagram (Mermaid)
-├── data/                        # Seed data (students, schedules, scraped content)
-├── scrapers/                    # Data scrapers (ERIC, IRIS, Wikipedia)
-├── scripts/                     # DB setup & seeding scripts
-├── tests/                       # Unit, integration, e2e, manual tests
+│   │   └── prompts.py           # System prompt templates for all agents
+│   ├── config.py                # Environment-based app configuration
+│   └── main.py                  # FastAPI application entry point
+├── static/                      # Frontend assets
+│   ├── index.html               #   Chat UI with student sidebar and predictions
+│   ├── app.js                   #   Frontend logic with step-trace accordion
+│   ├── styles.css               #   Styling (colorful theme, back-to-school pattern)
+│   ├── architecture.mmd         #   Architecture diagram source (Mermaid)
+│   └── architecture.png         #   Rendered architecture diagram
+├── data/                        # Seed data (students, schedules, teaching methods)
+├── scrapers/                    # Knowledge base scrapers (ERIC, IRIS, Wikipedia)
+├── scripts/                     # Database setup and seeding scripts
+├── tests/                       # Test suites
+│   ├── unit/                    #   Agent, service, and core component tests
+│   ├── integration/             #   API endpoint and frontend tests
+│   ├── e2e/                     #   End-to-end workflow tests
+│   └── manual/                  #   Manual testing utilities
 ├── requirements.txt
-├── render.yaml                  # Render deployment config
+├── render.yaml                  # Render deployment configuration
 └── README.md
 ```
 
 ## Deployment
 
-The application is deployed on Render:
+The application is deployed on **Render** with auto-deploy from the `main` branch:
 
 - **Live URL**: https://co-teacher-nl17.onrender.com
