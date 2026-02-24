@@ -73,7 +73,6 @@ class LLMClient:
         self,
         messages: List[Dict[str, str]],
         temperature: float = 0.7,
-        max_tokens: int = 1000,
         model: Optional[str] = None
     ) -> Dict[str, Any]:
         """
@@ -82,7 +81,6 @@ class LLMClient:
         Args:
             messages: List of message dicts with 'role' and 'content'
             temperature: Sampling temperature (0-2)
-            max_tokens: Maximum tokens in response
             model: Model to use (defaults to chat_model from settings)
 
         Returns:
@@ -93,30 +91,22 @@ class LLMClient:
         # Estimate tokens (rough: 4 chars = 1 token)
         prompt_text = " ".join(m.get("content", "") for m in messages)
         estimated_prompt_tokens = len(prompt_text) // 4
-        estimated_cost = self._estimate_cost(estimated_prompt_tokens, max_tokens // 2)
+        estimated_cost = self._estimate_cost(estimated_prompt_tokens, 500)
 
         self._check_budget(estimated_cost)
 
         async with httpx.AsyncClient(timeout=60.0) as client:
-            # GPT-5 models have special requirements:
-            # 1. Only support temperature=1
-            # 2. Use reasoning tokens internally, so we need higher max_tokens
+            # GPT-5 models only support temperature=1
             actual_temperature = temperature
-            actual_max_tokens = max_tokens
             is_gpt5 = "gpt-5" in model.lower() or "gpt5" in model.lower()
 
             if is_gpt5:
                 actual_temperature = 1.0
-                # GPT-5 uses reasoning tokens internally. We need to request
-                # more tokens to allow for reasoning + actual output.
-                # Multiply by 5 to ensure enough tokens for response.
-                actual_max_tokens = max_tokens * 5
 
             request_body = {
                 "model": model,
                 "messages": messages,
                 "temperature": actual_temperature,
-                "max_tokens": actual_max_tokens
             }
             
             response = await client.post(

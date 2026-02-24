@@ -71,7 +71,6 @@ class Presenter:
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=800
         )
 
         content = response.get("content", agent_response)
@@ -81,7 +80,7 @@ class Presenter:
             module=self.MODULE_NAME,
             prompt={
                 "action": "present_response",
-                "query_snippet": query[:50],
+                "query_snippet": query,
                 "original_length": len(agent_response)
             },
             response={

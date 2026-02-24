@@ -53,7 +53,6 @@ class BaseAgent(ABC):
         messages: list,
         prompt_summary: Dict[str, Any],
         temperature: float = 0.7,
-        max_tokens: int = 1000
     ) -> str:
         """
         Call the LLM and automatically track the step.
@@ -62,7 +61,6 @@ class BaseAgent(ABC):
             messages: List of message dicts for the LLM
             prompt_summary: Summary of the prompt for step tracking
             temperature: Sampling temperature
-            max_tokens: Maximum response tokens
 
         Returns:
             The LLM response content
@@ -71,7 +69,6 @@ class BaseAgent(ABC):
         result = await self.llm.complete(
             messages=messages,
             temperature=temperature,
-            max_tokens=max_tokens
         )
 
         # Handle None content
@@ -96,7 +93,6 @@ class BaseAgent(ABC):
         prompt_summary: Dict[str, Any],
         response_summary: Dict[str, Any],
         temperature: float = 0.7,
-        max_tokens: int = 1000
     ) -> str:
         """
         Call the LLM with custom response summary for step tracking.
@@ -105,7 +101,6 @@ class BaseAgent(ABC):
         result = await self.llm.complete(
             messages=messages,
             temperature=temperature,
-            max_tokens=max_tokens
         )
 
         # Track the step with custom response summary

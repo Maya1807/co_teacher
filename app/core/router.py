@@ -538,7 +538,6 @@ class RuleBasedRouter:
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,
-            max_tokens=200
         )
 
         content = response.get("content", "")
@@ -549,7 +548,7 @@ class RuleBasedRouter:
                 module="ORCHESTRATOR",
                 prompt={
                     "action": "llm_routing",
-                    "query_snippet": query[:100]
+                    "query_snippet": query
                 },
                 response={
                     "content": content,

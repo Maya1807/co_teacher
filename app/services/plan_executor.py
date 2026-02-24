@@ -221,7 +221,6 @@ class PlanExecutor:
         response = await self.llm.complete(
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=600,
         )
 
         content = response.get("content", "")
@@ -230,7 +229,7 @@ class PlanExecutor:
             module=self.MODULE_NAME,
             prompt={
                 "action": "synthesize_plan_results",
-                "query_snippet": plan.original_query[:100],
+                "query_snippet": plan.original_query,
                 "num_steps": len(plan.steps),
             },
             response={

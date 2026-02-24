@@ -148,7 +148,6 @@ class ResponseCombiner:
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
-            max_tokens=600
         )
 
         raw_content = response.get("content", "")
@@ -159,7 +158,7 @@ class ResponseCombiner:
             prompt={
                 "action": "synthesize_personalized_content",
                 "student": student_name,
-                "query_snippet": query[:100]
+                "query_snippet": query
             },
             response={
                 "content": raw_content,

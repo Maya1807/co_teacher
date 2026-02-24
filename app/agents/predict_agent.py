@@ -130,7 +130,6 @@ class PredictAgent(BaseAgent):
                 "predictions_count": len(predictions)
             },
             temperature=0.7,
-            max_tokens=800
         )
 
         return {
@@ -203,7 +202,6 @@ class PredictAgent(BaseAgent):
                     "event": event.get("title")
                 },
                 temperature=0.7,
-                max_tokens=500
             )
 
             risk_result["detailed_analysis"] = detailed_response
@@ -378,7 +376,6 @@ class PredictAgent(BaseAgent):
                 "students_at_risk": len(predictions)
             },
             temperature=0.7,
-            max_tokens=800
         )
 
         return {

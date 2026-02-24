@@ -451,6 +451,79 @@ function closeTrace() {
 }
 
 /**
+ * Syntax-highlight a JSON string (already formatted with indentation).
+ * Escapes HTML first, then applies colored spans for keys, values, numbers, booleans, null.
+ */
+function highlightJson(json) {
+    const escaped = escapeHtml(json);
+    return escaped
+        .replace(
+            /^(\s*)("(?:[^"\\]|\\.)*?")\s*:/gm,  // keys at start of line
+            '$1<span class="json-key">$2</span>:'
+        )
+        .replace(
+            /:\s("(?:[^"\\]|\\.)*?")/g,  // string values
+            ': <span class="json-string">$1</span>'
+        )
+        .replace(
+            /:\s(\d+\.?\d*(?:e[+-]?\d+)?)/gi,  // numbers (including scientific notation)
+            ': <span class="json-number">$1</span>'
+        )
+        .replace(
+            /:\s(true|false)/g,  // booleans
+            ': <span class="json-bool">$1</span>'
+        )
+        .replace(
+            /:\s(null)/g,  // null
+            ': <span class="json-null">$1</span>'
+        );
+}
+
+/**
+ * Try to deeply expand JSON strings inside an object.
+ * If a value is a string that looks like JSON, parse it into a real object.
+ */
+function deepExpandJson(obj) {
+    if (obj === null || obj === undefined) return obj;
+    if (typeof obj === 'string') {
+        const trimmed = obj.trim();
+        if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+            (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+            try {
+                return deepExpandJson(JSON.parse(trimmed));
+            } catch (e) {
+                return obj;
+            }
+        }
+        return obj;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(deepExpandJson);
+    }
+    if (typeof obj === 'object') {
+        const result = {};
+        for (const [key, val] of Object.entries(obj)) {
+            result[key] = deepExpandJson(val);
+        }
+        return result;
+    }
+    return obj;
+}
+
+/**
+ * Format trace content: pretty JSON for objects, plain text for strings.
+ * Expands stringified JSON inside fields like "content" for full readability.
+ */
+function formatTraceContent(value) {
+    if (typeof value === 'string') {
+        return escapeHtml(value);
+    }
+    const expanded = deepExpandJson(value);
+    const json = JSON.stringify(expanded, null, 2);
+    return highlightJson(json);
+}
+
+/**
  * Render trace steps in sidebar
  */
 function renderTraceSteps(steps) {
@@ -462,17 +535,8 @@ function renderTraceSteps(steps) {
         stepDiv.dataset.stepIndex = index;
 
         const moduleName = step.module || `Step ${index + 1}`;
-        const promptText = typeof step.prompt === 'string'
-            ? step.prompt
-            : JSON.stringify(step.prompt, null, 2);
-        const responseText = typeof step.response === 'string'
-            ? step.response
-            : JSON.stringify(step.response, null, 2);
-
-        // Auto-open first step
-        if (index === 0) {
-            stepDiv.classList.add('open');
-        }
+        const promptHtml = formatTraceContent(step.prompt);
+        const responseHtml = formatTraceContent(step.response);
 
         stepDiv.innerHTML = `
             <div class="step-header" onclick="toggleStep(${index})">
@@ -480,12 +544,12 @@ function renderTraceSteps(steps) {
                 <span class="chevron">▼</span>
             </div>
             <div class="step-body">
-                <div class="step-section">
-                    <div class="step-section-header">
-                        <span class="step-section-label">Prompt</span>
+                <div class="step-section" data-section="prompt-${index}">
+                    <div class="step-section-header" onclick="toggleSection('prompt-${index}')">
+                        <span class="step-section-label">Prompt <span class="section-chevron">▶</span></span>
                         <div class="button-group">
-                            <button class="copy-btn" onclick="copyText(this, 'prompt', ${index})">Copy</button>
-                            <button class="expand-btn" onclick="openExpandModal('prompt', ${index})" title="View full prompt">
+                            <button class="copy-btn" onclick="event.stopPropagation(); copyText(this, 'prompt', ${index})">Copy</button>
+                            <button class="expand-btn" onclick="event.stopPropagation(); openExpandModal('prompt', ${index})" title="View full prompt">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="15 3 21 3 21 9"/>
                                     <polyline points="9 21 3 21 3 15"/>
@@ -494,14 +558,14 @@ function renderTraceSteps(steps) {
                             </button>
                         </div>
                     </div>
-                    <pre>${escapeHtml(promptText)}</pre>
+                    <pre class="section-content">${promptHtml}</pre>
                 </div>
-                <div class="step-section">
-                    <div class="step-section-header">
-                        <span class="step-section-label">Response</span>
+                <div class="step-section" data-section="response-${index}">
+                    <div class="step-section-header" onclick="toggleSection('response-${index}')">
+                        <span class="step-section-label">Response <span class="section-chevron">▶</span></span>
                         <div class="button-group">
-                            <button class="copy-btn" onclick="copyText(this, 'response', ${index})">Copy</button>
-                            <button class="expand-btn" onclick="openExpandModal('response', ${index})" title="View full response">
+                            <button class="copy-btn" onclick="event.stopPropagation(); copyText(this, 'response', ${index})">Copy</button>
+                            <button class="expand-btn" onclick="event.stopPropagation(); openExpandModal('response', ${index})" title="View full response">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polyline points="15 3 21 3 21 9"/>
                                     <polyline points="9 21 3 21 3 15"/>
@@ -510,7 +574,7 @@ function renderTraceSteps(steps) {
                             </button>
                         </div>
                     </div>
-                    <pre>${escapeHtml(responseText)}</pre>
+                    <pre class="section-content">${responseHtml}</pre>
                 </div>
             </div>
         `;
@@ -530,8 +594,47 @@ function toggleStep(index) {
 }
 
 /**
+ * Toggle a prompt/response section inside a step
+ */
+function toggleSection(sectionId) {
+    const section = document.querySelector(`.step-section[data-section="${sectionId}"]`);
+    if (section) {
+        section.classList.toggle('open');
+    }
+}
+
+/**
  * Copy text to clipboard
  */
+function fallbackCopy(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+}
+
+function copyToClipboard(text, button) {
+    const originalText = button.textContent;
+    const onSuccess = () => {
+        button.textContent = 'Copied!';
+        setTimeout(() => { button.textContent = originalText; }, 1500);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
+            fallbackCopy(text);
+            onSuccess();
+        });
+    } else {
+        fallbackCopy(text);
+        onSuccess();
+    }
+}
+
 function copyText(button, type, stepIndex) {
     const message = messages.find(m => m.id === currentTraceMessageId);
     if (!message || !message.steps[stepIndex]) return;
@@ -540,18 +643,11 @@ function copyText(button, type, stepIndex) {
     let text = type === 'prompt' ? step.prompt : step.response;
 
     if (typeof text !== 'string') {
-        text = JSON.stringify(text, null, 2);
+        const expanded = deepExpandJson(text);
+        text = JSON.stringify(expanded, null, 2);
     }
 
-    navigator.clipboard.writeText(text).then(() => {
-        const originalText = button.textContent;
-        button.textContent = 'Copied!';
-        setTimeout(() => {
-            button.textContent = originalText;
-        }, 1500);
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-    });
+    copyToClipboard(text, button);
 }
 
 /**
@@ -623,11 +719,7 @@ function openExpandModal(type, stepIndex) {
     if (!message || !message.steps[stepIndex]) return;
 
     const step = message.steps[stepIndex];
-    let content = type === 'prompt' ? step.prompt : step.response;
-
-    if (typeof content !== 'string') {
-        content = JSON.stringify(content, null, 2);
-    }
+    const value = type === 'prompt' ? step.prompt : step.response;
 
     const modal = document.getElementById('expand-modal');
     const overlay = document.getElementById('expand-modal-overlay');
@@ -635,7 +727,7 @@ function openExpandModal(type, stepIndex) {
     const modalContent = document.getElementById('expand-modal-content');
 
     modalTitle.textContent = `${step.module} - ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-    modalContent.textContent = content;
+    modalContent.innerHTML = formatTraceContent(value);
 
     modal.classList.add('open');
     overlay.classList.add('open');
@@ -654,21 +746,10 @@ function closeExpandModal() {
 /**
  * Copy full modal content to clipboard
  */
-function copyModalContent() {
+function copyModalContent(button) {
     const modalContent = document.getElementById('expand-modal-content');
     const text = modalContent.textContent;
-
-    navigator.clipboard.writeText(text).then(() => {
-        const button = event.target;
-        const originalText = button.textContent;
-        button.textContent = 'Copied!';
-        setTimeout(() => {
-            button.textContent = originalText;
-        }, 1500);
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-        alert('Failed to copy to clipboard');
-    });
+    copyToClipboard(text, button);
 }
 
 // Keyboard handlers

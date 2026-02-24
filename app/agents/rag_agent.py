@@ -60,7 +60,7 @@ class RAGAgent(BaseAgent):
             cached = await self.cache.get(query, self.MODULE_NAME)
             if cached:
                 self.add_step(
-                    prompt={"action": "cache_hit", "query": query[:100]},
+                    prompt={"action": "cache_hit", "query": query},
                     response={"from_cache": True}
                 )
                 return {
@@ -131,12 +131,11 @@ class RAGAgent(BaseAgent):
             prompt_summary={
                 "action": "contextual_search",
                 "student": student_name,
-                "query_snippet": query[:100],
+                "query_snippet": query,
                 "disability_type": student_context.get("disability_type"),
                 "methods_found": len(methods)
             },
             temperature=0.7,
-            max_tokens=1000
         )
 
         return response
@@ -159,11 +158,10 @@ class RAGAgent(BaseAgent):
             ],
             prompt_summary={
                 "action": "general_search",
-                "query_snippet": query[:100],
+                "query_snippet": query,
                 "methods_found": len(methods)
             },
             temperature=0.7,
-            max_tokens=1000
         )
 
         return response
@@ -189,7 +187,7 @@ class RAGAgent(BaseAgent):
             prompt={
                 "action": "get_methods_for_student",
                 "student": student_profile.get("name"),
-                "query": query[:50]
+                "query": query
             },
             response={
                 "methods_found": len(methods),
@@ -231,7 +229,7 @@ class RAGAgent(BaseAgent):
         self.add_step(
             prompt={
                 "action": "get_relevant_methods",
-                "query": query[:100],
+                "query": query,
                 "has_student_context": bool(student_context)
             },
             response={
@@ -309,7 +307,6 @@ Provide:
                 "method": method_name
             },
             temperature=0.7,
-            max_tokens=800
         )
 
         return response

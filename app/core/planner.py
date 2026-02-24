@@ -118,7 +118,6 @@ class LLMPlanner:
                 {"role": "user", "content": prompt},
             ],
             temperature=0.3,
-            max_tokens=400,
         )
 
         content = response.get("content", "")
@@ -128,7 +127,7 @@ class LLMPlanner:
             module=self.MODULE_NAME,
             prompt={
                 "action": "create_plan",
-                "query_snippet": query[:100],
+                "query_snippet": query,
             },
             response={
                 "content": content,

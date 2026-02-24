@@ -116,7 +116,6 @@ class AdminAgent(BaseAgent):
                 "query_type": "IEP"
             },
             temperature=0.6,
-            max_tokens=1200
         )
 
         return {
@@ -159,7 +158,6 @@ class AdminAgent(BaseAgent):
                 "student": student_context.get("name", "Unknown")
             },
             temperature=0.7,
-            max_tokens=800
         )
 
         return {
@@ -230,7 +228,6 @@ class AdminAgent(BaseAgent):
                 "period": time_period
             },
             temperature=0.6,
-            max_tokens=1000
         )
 
         # Cache the summary
@@ -270,7 +267,6 @@ class AdminAgent(BaseAgent):
                 "student": student_context.get("name", "Unknown")
             },
             temperature=0.5,
-            max_tokens=800
         )
 
         return {
@@ -303,10 +299,9 @@ Please draft an appropriate response or document based on the request."""
             ],
             prompt_summary={
                 "action": "general_admin",
-                "query_snippet": query[:100]
+                "query_snippet": query
             },
             temperature=0.7,
-            max_tokens=800
         )
 
         return {

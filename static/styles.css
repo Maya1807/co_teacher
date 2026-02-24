@@ -1576,11 +1576,33 @@ body {
     margin-top: 12px;
 }
 
+.step-section .section-content {
+    display: none;
+}
+
+.step-section.open .section-content {
+    display: block;
+}
+
+.section-chevron {
+    font-size: 0.6rem;
+    margin-left: 4px;
+    display: inline-block;
+    transition: transform 0.2s;
+}
+
+.step-section.open .section-chevron {
+    transform: rotate(90deg);
+}
+
 .step-section-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 8px;
+    cursor: pointer;
+    padding: 4px 0;
+    border-radius: var(--radius-sm);
 }
 
 .step-section-label {
@@ -1645,6 +1667,13 @@ body {
     white-space: pre-wrap;
     word-break: break-word;
 }
+
+/* JSON syntax highlighting in trace */
+.json-key { color: #7dd3fc; }
+.json-string { color: #86efac; }
+.json-number { color: #fbbf24; }
+.json-bool { color: #c4b5fd; }
+.json-null { color: #94a3b8; font-style: italic; }
 
 /* ==================== MODAL ==================== */
 

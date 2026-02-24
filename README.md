@@ -61,7 +61,7 @@ The system uses a **multi-agent architecture** with LLM-based planning:
 | **ContextResolver** | Analyzes recent conversation history to extract the current student being discussed and the active topic, so follow-up queries like "What about his triggers?" resolve correctly without re-stating the student name |
 | **LLMPlanner** | Receives the teacher's query along with conversation context and produces a typed execution plan — a sequence of steps like `student_lookup`, `rag_search`, `admin_doc`, `predict`, each with dependencies, so agents execute in the correct order |
 | **PlanExecutor** | Walks through the plan steps sequentially, dispatching each to the appropriate agent, passing results from earlier steps as context to later ones, and synthesizing combined results for multi-step plans |
-| **Presenter** | Applies voice transformation to raw agent output, producing responses in two tones: warm and supportive for student-facing advice, or concise and professional for administrative documents |
+| **Presenter** | Applies voice transformation to raw agent output using a consistent warm and respectful tone, with a calmer grounding variant for sensitive situations (meltdowns, crises, parent conflicts) |
 
 ### Memory Architecture
 

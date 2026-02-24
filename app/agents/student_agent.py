@@ -145,10 +145,9 @@ class StudentAgent(BaseAgent):
             prompt_summary={
                 "action": "profile_query",
                 "student": current_profile.get("name", "Unknown"),
-                "query_snippet": query[:100]
+                "query_snippet": query
             },
             temperature=0.7,
-            max_tokens=800
         )
 
         return {
@@ -181,7 +180,6 @@ class StudentAgent(BaseAgent):
                 "searched_name": student_name
             },
             temperature=0.7,
-            max_tokens=300
         )
 
         return {
@@ -248,10 +246,9 @@ class StudentAgent(BaseAgent):
             prompt_summary={
                 "action": "extract_update_info",
                 "student": profile.get("name"),
-                "query_snippet": query[:100]
+                "query_snippet": query
             },
             temperature=0.1,  # Low temp for structured extraction
-            max_tokens=500
         )
 
         # Parse the JSON response
@@ -390,7 +387,6 @@ class StudentAgent(BaseAgent):
                     "fields_updated": list(profile_updates.keys())
                 },
                 temperature=0.7,
-                max_tokens=200
             )
 
             # Fetch updated profile
