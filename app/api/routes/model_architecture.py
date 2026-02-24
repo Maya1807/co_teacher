@@ -60,7 +60,9 @@ ARCHITECTURE_DESCRIPTION = {
         "ContextResolver": "Extracts context from conversation history, resolves student identity",
         "LLMPlanner": "Decomposes teacher queries into typed plan steps (student_lookup, rag_search, admin_doc, predict, synthesize)",
         "PlanExecutor": "Executes plan steps sequentially, dispatching to appropriate agents and synthesizing multi-step results",
-        "Presenter": "Transforms raw agent output into the teacher's preferred communication voice"
+        "Presenter": "Transforms raw agent output into the teacher's preferred communication voice (two tones: GROUNDING for crisis, STANDARD for normal)",
+        "ResponseCombiner": "Synthesizes responses when StudentAgent + RAGAgent work together for personalized recommendations",
+        "AgentExecutor": "Simple dispatch layer that routes to agents by AgentType"
     },
     "memory": {
         "Supabase (Short-term)": (
@@ -69,7 +71,8 @@ ARCHITECTURE_DESCRIPTION = {
         ),
         "Pinecone (Long-term)": (
             "Student profile embeddings (student-profiles namespace), "
-            "teaching methods knowledge base (teaching-methods namespace)"
+            "teaching methods knowledge base (teaching-methods namespace), "
+            "past intervention outcomes (interventions namespace)"
         )
     },
     "data_flow": [
@@ -86,11 +89,12 @@ ARCHITECTURE_DESCRIPTION = {
     ],
     "cost_optimizations": [
         "LLM-based planning decomposes complex queries into minimal agent calls",
-        "Two-tier response caching (Supabase + in-memory) for RAG and Admin queries",
+        "Two-tier response caching (Supabase + in-memory) for RAG, Admin, and Predict queries",
         "Budget tracking with hard limits ($13 default) and async lock",
         "All LLM calls logged to Supabase budget_tracking for monitoring",
         "Lazy initialization of agents and services",
-        "Optional presentation layer (can skip voice transformation)"
+        "Optional presentation layer (can skip voice transformation)",
+        "Rule-based risk calculation in PredictAgent (LLM only for detailed recommendations)"
     ],
     "diagram_source": "/static/architecture.mmd"
 }

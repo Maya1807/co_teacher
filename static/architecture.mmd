@@ -105,6 +105,7 @@ flowchart TB
 
     %% Cache connections
     RA -.->|"check/store"| CACHE
+    AA -.->|"check/store"| CACHE
     CACHE -.-> SB
 
     %% Agents to LLM
