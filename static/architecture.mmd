@@ -10,14 +10,6 @@
 
 flowchart TB
 
-    subgraph LEGEND["Key"]
-        direction LR
-        Lllm["LLM call\n(purple)"]
-        Lnollm["No LLM\nPure logic (teal)"]
-        Lagent["Specialist agent\nLLM call (green)"]
-        Lmem[("Memory store\n(orange)")]
-    end
-
     TEACHER["<b>Teacher</b>"]
     GUIAPI["<b>GUI / REST API</b>"]
 
@@ -31,12 +23,12 @@ flowchart TB
         end
     end
 
-    PLAN["<b>PLANNER</b><br/><small>LLM call<br/>PLANNER_SYSTEM<br/>+ query + conv_context<br/>[+ history addendum]</small>"]
+    PLAN["<b>PLANNER</b><br/><small>(makes an LLM call)<br/>+ query + conv_context<br/>[+ history addendum]</small>"]
 
     subgraph EXEC_LAYER["<b>Execution Layer</b>"]
         direction TB
         EXEC["<b>PLAN_EXECUTOR</b><br/><small>no LLM · dispatches each step<br/>task + context<br/>[+ prior step results for deps]</small>"]
-        PRES["<b>PRESENTER</b><br/><small>LLM call<br/>FINAL_PRESENTATION_PROMPT<br/>query + formatted agent results<br/>voice transformation</small>"]
+        PRES["<b>PRESENTER</b><br/><small>(makes an LLM call)<br/>FINAL_PRESENTATION_PROMPT<br/>query + formatted agent results<br/>voice transformation</small>"]
     end
 
     subgraph AGENTS["<b>Specialist Agents</b>  (all make LLM calls)"]
@@ -88,7 +80,7 @@ flowchart TB
     SA & RA & AA & PA -->|"read / write"| MEMORY
 
     %% ── Execution → Presentation ──
-    EXEC -->|"format_multi_step_content<br/>(labelled agent blocks)"| PRES
+    EXEC -->|"all agent's outputs"| PRES
 
     %% ── Response ──
     PRES -->|"transformed response"| GUIAPI
@@ -104,15 +96,14 @@ flowchart TB
     classDef api fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#0D47A1
     classDef svc fill:#F8F9FA,stroke:#90A4AE,stroke-width:1px,color:#37474F
 
-    class PLAN,PRES,Lllm llm
-    class ORCH,EXEC,Lnollm noLlm
-    class SA,RA,AA,PA,Lagent agent
-    class SB,PC,Lmem mem
+    class PLAN,PRES llm
+    class ORCH,EXEC noLlm
+    class SA,RA,AA,PA agent
+    class SB,PC mem
     class TEACHER person
     class GUIAPI api
     class CS,CR svc
 
-    style LEGEND fill:#FAFAFA,stroke:#CFD8DC,stroke-width:1px,stroke-dasharray:3 2
     style ORCH_LAYER fill:#E8F5FB,stroke:#90CAF9,stroke-width:1px
     style SVCBOX fill:#EEF2F7,stroke:#B0BEC5,stroke-width:1px,stroke-dasharray:4 3
     style EXEC_LAYER fill:#F8F0FC,stroke:#CE93D8,stroke-width:1px
