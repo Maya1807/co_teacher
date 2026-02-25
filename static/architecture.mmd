@@ -4,67 +4,105 @@
     'background': '#FFFFFF',
     'lineColor': '#78909C',
     'fontFamily': 'Inter, -apple-system, sans-serif',
-    'fontSize': '15px'
+    'fontSize': '14px'
   }
 }}%%
 
 flowchart TB
     UI["🧑‍🏫 <b>Teacher UI</b>"]
 
-    subgraph PIPELINE["<b>Processing Pipeline</b>"]
+    subgraph ORCH_LAYER["<b>Orchestration Layer</b>"]
         direction TB
-        ORCH["<b>Orchestrator</b>"]
-        PLAN["🤖 <b>PLANNER</b>"]
-        EXEC["<b>PLAN_EXECUTOR</b>"]
-        PRES["🤖 <b>PRESENTER</b>"]
+        ORCH["<b>ORCHESTRATOR</b><br/><small>no LLM · central coordinator</small>"]
+        subgraph SVCBOX["<b>Internal Services</b>"]
+            direction LR
+            CS["<b>ConversationService</b><br/><small>persist messages</small>"]
+            CR["<b>ContextResolver</b><br/><small>extract conv_context<br/>resolve student profile</small>"]
+        end
     end
 
-    subgraph AGENTS["<b>Agents</b> — all 🤖 LLM"]
+    PLAN["🤖 <b>PLANNER</b><br/><small>PLANNER_SYSTEM<br/>+ query + conv_context<br/>[+ history addendum]</small>"]
+
+    subgraph EXEC_LAYER["<b>Execution Layer</b>"]
+        direction TB
+        EXEC["<b>PLAN_EXECUTOR</b><br/><small>no LLM · dispatches each step<br/>task + student_context<br/>[+ prior step results for deps]</small>"]
+        PRES["🤖 <b>PRESENTER</b><br/><small>FINAL_PRESENTATION_PROMPT<br/>query + formatted agent results<br/>→ voice transformation</small>"]
+    end
+
+    subgraph AGENTS["<b>Specialist Agents</b> — all 🤖 LLM"]
         direction LR
-        SA["<b>STUDENT_AGENT</b>"]
-        RA["<b>RAG_AGENT</b>"]
-        AA["<b>ADMIN_AGENT</b>"]
-        PA["<b>PREDICT_AGENT</b>"]
+        SA["<b>STUDENT_AGENT</b><br/><small>task + student_id<br/>read / write profile</small>"]
+        RA["<b>RAG_AGENT</b><br/><small>task + failed_methods<br/>+ learning_style</small>"]
+        AA["<b>ADMIN_AGENT</b><br/><small>task + student profile<br/>+ events</small>"]
+        PA["<b>PREDICT_AGENT</b><br/><small>task + schedule events<br/>+ daily_context</small>"]
     end
 
     subgraph MEMORY["<b>Memory</b>"]
         direction LR
-        SB[("Supabase")]
-        PC[("Pinecone")]
+        SB[("🗄 <b>Supabase</b><br/><small>students · conversations<br/>events · budget_tracking<br/>daily_context</small>")]
+        PC[("🔍 <b>Pinecone</b><br/><small>teaching-methods<br/>interventions<br/>student-profiles</small>")]
     end
 
-    %% Main pipeline flow
+    %% ── Entry ──
     UI -->|"query"| ORCH
-    ORCH --> PLAN
-    PLAN --> EXEC
-    EXEC --> PRES
-    PRES -->|"response"| UI
 
-    %% Agent dispatch and results back to executor
-    EXEC -->|"dispatch + context"| AGENTS
-    AGENTS -->|"results"| EXEC
+    %% ── Orchestrator → internal services ──
+    ORCH -->|"user message"| CS
+    CS <-->|"save msg / load history"| SB
+    CS -->|"conv history"| CR
 
-    %% Agents read from memory
-    SA & AA & PA -->|"read"| SB
-    SA -->|"write"| SB
-    RA -->|"search"| PC
+    %% ── ContextResolver: extract conv_context for Planner ──
+    CR -->|"conv_context<br/>(recent_student, history_summary,<br/>previous_agents)"| PLAN
 
-    %% Orchestrator persists conversations
-    ORCH -->|"save/load history"| SB
+    %% ── ContextResolver: resolve student profile ──
+    CR -->|"student_name lookup"| SB
+    SB -->|"student_context<br/>(full profile)"| EXEC
 
-    %% Styling
+    %% ── Orchestrator → Planner ──
+    ORCH -->|"query"| PLAN
+
+    %% ── Planner → Executor ──
+    PLAN -->|"ExecutionPlan<br/>(steps + agent assignments<br/>+ student_name)"| EXEC
+
+    %% ── Executor → Agents ──
+    EXEC -->|"task + student_context<br/>[+ STUDENT_AGENT result]"| RA
+    EXEC -->|"task + student_context"| SA
+    EXEC -->|"task + student_context"| AA
+    EXEC -->|"task"| PA
+
+    %% ── Agents → results ──
+    SA & RA & AA & PA -->|"step results"| EXEC
+
+    %% ── Agent memory access ──
+    SA <-->|"read profile<br/>write updates"| SB
+    RA -->|"semantic search<br/>(teaching-methods, interventions)"| PC
+    AA -->|"read profile + events"| SB
+    PA -->|"read events + daily_context"| SB
+
+    %% ── Execution → Presentation ──
+    EXEC -->|"format_multi_step_content<br/>(labelled agent blocks)"| PRES
+
+    %% ── Response ──
+    PRES -->|"transformed response"| UI
+    PRES -->|"save assistant message"| CS
+
+    %% ── Styling ──
     classDef llm fill:#E1BEE7,stroke:#8E24AA,stroke-width:2px,color:#4A148C
     classDef noLlm fill:#B2DFDB,stroke:#00897B,stroke-width:2px,color:#004D40
     classDef agent fill:#C8E6C9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20
     classDef mem fill:#FFE0B2,stroke:#EF6C00,stroke-width:2px,color:#E65100
     classDef ui fill:#BBDEFB,stroke:#1565C0,stroke-width:3px,color:#0D47A1
+    classDef svc fill:#F8F9FA,stroke:#90A4AE,stroke-width:1px,color:#37474F
 
     class PLAN,PRES llm
     class ORCH,EXEC noLlm
     class SA,RA,AA,PA agent
     class SB,PC mem
     class UI ui
+    class CS,CR svc
 
-    style PIPELINE fill:#FAFAFA,stroke:#B0BEC5,stroke-width:1px
+    style ORCH_LAYER fill:#E8F5FB,stroke:#90CAF9,stroke-width:1px
+    style SVCBOX fill:#EEF2F7,stroke:#B0BEC5,stroke-width:1px,stroke-dasharray:4 3
+    style EXEC_LAYER fill:#F8F0FC,stroke:#CE93D8,stroke-width:1px
     style AGENTS fill:#F1F8E9,stroke:#81C784,stroke-width:2px,stroke-dasharray:5 5
     style MEMORY fill:#FFF3E0,stroke:#FFB74D,stroke-width:2px,stroke-dasharray:5 5
