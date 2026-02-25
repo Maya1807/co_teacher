@@ -9,7 +9,8 @@
 }}%%
 
 flowchart TB
-    UI["🧑‍🏫 <b>Teacher UI</b>"]
+    TEACHER["🧑‍🏫 <b>Teacher</b>"]
+    GUIAPI["🌐 <b>GUI / REST API</b>"]
 
     subgraph ORCH_LAYER["<b>Orchestration Layer</b>"]
         direction TB
@@ -44,7 +45,8 @@ flowchart TB
     end
 
     %% ── Entry ──
-    UI -->|"query"| ORCH
+    TEACHER -->|"request"| GUIAPI
+    GUIAPI -->|"query"| ORCH
 
     %% ── Orchestrator → internal services ──
     ORCH -->|"user message"| CS
@@ -65,25 +67,24 @@ flowchart TB
     PLAN -->|"ExecutionPlan<br/>(steps + agent assignments<br/>+ student_name)"| EXEC
 
     %% ── Executor → Agents ──
-    EXEC -->|"task + student_context<br/>[+ STUDENT_AGENT result]"| RA
-    EXEC -->|"task + student_context"| SA
-    EXEC -->|"task + student_context"| AA
-    EXEC -->|"task"| PA
+    EXEC -->|"task + student_context<br/>[+ prior step results]"| SA
+    EXEC -->|"task + student_context<br/>[+ prior step results]"| RA
+    EXEC -->|"task + student_context<br/>[+ prior step results]"| AA
+    EXEC -->|"task<br/>[+ prior step results]"| PA
 
     %% ── Agents → results ──
     SA & RA & AA & PA -->|"step results"| EXEC
 
-    %% ── Agent memory access ──
-    SA <-->|"read profile<br/>write updates"| SB
-    RA -->|"semantic search<br/>(teaching-methods, interventions)"| PC
-    AA -->|"read profile + events"| SB
-    PA -->|"read events + daily_context"| SB
+    %% ── Agents ↔ Memory (all reads and writes as a block) ──
+    SA & RA & AA & PA -->|"read / write"| MEMORY
+    MEMORY -->|"enriched context<br/>(profile, strategies, events)"| EXEC
 
     %% ── Execution → Presentation ──
     EXEC -->|"format_multi_step_content<br/>(labelled agent blocks)"| PRES
 
     %% ── Response ──
-    PRES -->|"transformed response"| UI
+    PRES -->|"transformed response"| GUIAPI
+    GUIAPI -->|"response"| TEACHER
     PRES -->|"save assistant message"| CS
 
     %% ── Styling ──
@@ -91,14 +92,16 @@ flowchart TB
     classDef noLlm fill:#B2DFDB,stroke:#00897B,stroke-width:2px,color:#004D40
     classDef agent fill:#C8E6C9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20
     classDef mem fill:#FFE0B2,stroke:#EF6C00,stroke-width:2px,color:#E65100
-    classDef ui fill:#BBDEFB,stroke:#1565C0,stroke-width:3px,color:#0D47A1
+    classDef person fill:#BBDEFB,stroke:#1565C0,stroke-width:3px,color:#0D47A1
+    classDef api fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#0D47A1
     classDef svc fill:#F8F9FA,stroke:#90A4AE,stroke-width:1px,color:#37474F
 
     class PLAN,PRES llm
     class ORCH,EXEC noLlm
     class SA,RA,AA,PA agent
     class SB,PC mem
-    class UI ui
+    class TEACHER person
+    class GUIAPI api
     class CS,CR svc
 
     style ORCH_LAYER fill:#E8F5FB,stroke:#90CAF9,stroke-width:1px
