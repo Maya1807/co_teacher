@@ -256,7 +256,7 @@ class TestResponseCombiner:
 
         mock_tracker.add_step.assert_called()
         call_args = mock_tracker.add_step.call_args
-        assert call_args.kwargs["module"] == "ORCHESTRATOR"
+        assert call_args.kwargs["module"] == "RESPONSE_COMBINER"
         assert call_args.kwargs["prompt"]["action"] == "synthesize_personalized_content"
 
     def test_format_student_summary(self, combiner):

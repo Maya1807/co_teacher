@@ -34,7 +34,7 @@ class ResponseCombiner:
     Extracted from orchestrator to separate multi-agent synthesis concerns.
     """
 
-    MODULE_NAME = "ORCHESTRATOR"  # Steps tracked under orchestrator
+    MODULE_NAME = "RESPONSE_COMBINER"
 
     def __init__(
         self,

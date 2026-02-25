@@ -30,38 +30,36 @@ The system uses a **multi-agent architecture** with LLM-based planning:
 ### How It Works
 
 1. **Teacher sends a query** via `POST /api/execute`
-2. **StepTracker** is initialized for request-scoped tracing of all steps
-3. **ConversationService** stores the message and retrieves conversation history
-4. **ContextResolver** extracts context (recent student, topic) from history
-5. **LLMPlanner** decomposes the query into typed plan steps (e.g., `student_lookup`, `rag_search`, `admin_doc`, `predict`, `synthesize`)
-6. **PlanExecutor** dispatches each step to the appropriate specialized agent
-7. For multi-step plans, **PlanExecutor** synthesizes the combined results via an LLM call
-8. **Presenter** applies voice transformation to create a natural teacher-friendly response
-9. All steps (with cost, tokens, timing) are returned in the response for full observability
+2. **Orchestrator** initializes request-scoped tracing, persists the message to Supabase, and loads conversation history
+3. **PLANNER** 🤖 decomposes the query into typed plan steps (e.g., `student_lookup`, `rag_search`, `admin_doc`, `predict`)
+4. **PLAN_EXECUTOR** 🤖 dispatches each step to the appropriate specialized agent
+5. **Agents** 🤖 execute their tasks using LLM calls, reading from memory stores (STUDENT/ADMIN/PREDICT → Supabase, RAG → Pinecone). Results are passed back to PLAN_EXECUTOR as context for subsequent agents
+6. **PLAN_EXECUTOR** collects agent results and passes them to PRESENTER
+7. **PRESENTER** 🤖 applies voice transformation to create a natural teacher-friendly response
+8. **Orchestrator** persists the assistant response to Supabase and returns the result with full step traces (cost, tokens, timing)
 
 ### Agent Descriptions
 
-**STUDENT_AGENT** — Manages individualized student profiles including disability type, sensory triggers, successful and failed teaching methods, and learning styles. Detects implicit profile updates from natural teacher messages (e.g., "Alex had a meltdown during the fire drill" automatically flags loud noises as a trigger). Provides student context to all other agents so that every recommendation is personalized.
+**STUDENT_AGENT** *(✓ Makes LLM calls)* — Manages individualized student profiles including disability type, sensory triggers, successful and failed teaching methods, and learning styles. Detects implicit profile updates from natural teacher messages (e.g., "Alex had a meltdown during the fire drill" automatically flags loud noises as a trigger). Provides student context to all other agents so that every recommendation is personalized.
 - *Example queries*: "What are Alex's triggers?", "Tell me about Jordan's learning style", "Alex had a panic attack during the assembly"
 
-**RAG_AGENT** — Retrieves evidence-based teaching strategies from a vector knowledge base (Pinecone) using semantic search. Filters recommendations by disability type (autism, ADHD, dyslexia, sensory processing, emotional/behavioral) and automatically excludes methods that have previously failed for a specific student. Supports both general strategy queries and student-personalized recommendations.
+**RAG_AGENT** *(✓ Makes LLM calls)* — Retrieves evidence-based teaching strategies from a vector knowledge base (Pinecone) using semantic search. Filters recommendations by disability type (autism, ADHD, dyslexia, sensory processing, emotional/behavioral) and automatically excludes methods that have previously failed for a specific student. Supports both general strategy queries and student-personalized recommendations.
 - *Example queries*: "What de-escalation techniques work for EBD students?", "How should I teach reading to a student with dyslexia?", "What sensory strategies can I use for Alex?"
 
-**ADMIN_AGENT** — Generates special education administrative documents: IEP progress reports with SMART goals and measurable data, parent communication emails in a warm and professional tone, daily/weekly/monthly classroom summaries, and factual incident reports. Pulls student profiles and daily context observations to ground documents in real data rather than generic templates.
+**ADMIN_AGENT** *(✓ Makes LLM calls)* — Generates special education administrative documents: IEP progress reports with SMART goals and measurable data, parent communication emails in a warm and professional tone, daily/weekly/monthly classroom summaries, and factual incident reports. Pulls student profiles and daily context observations to ground documents in real data rather than generic templates.
 - *Example queries*: "Draft an IEP progress report for Jordan", "Write an email to Riley's parents about today's incident", "Give me a weekly summary"
 
-**PREDICT_AGENT** — Provides proactive daily briefings by cross-referencing all student triggers against today's scheduled events (fire drills, assemblies, substitute teachers, field trips). Uses rule-based risk calculation (high/medium/low) to flag students who may struggle, then generates actionable intervention suggestions with specific timing and scripts the teacher can use immediately.
+**PREDICT_AGENT** *(✓ Makes LLM calls)* — Provides proactive daily briefings by cross-referencing all student triggers against today's scheduled events (fire drills, assemblies, substitute teachers, field trips). Uses rule-based risk calculation (high/medium/low) to flag students who may struggle, then generates actionable intervention suggestions with specific timing and scripts the teacher can use immediately.
 - *Example queries*: "What should I watch for today?", "Any students at risk during the field trip?", "Daily briefing"
 
 ### Services
 
-| Service | Role |
-|---------|------|
-| **ConversationService** | Manages conversation lifecycle — creates sessions, stores messages with role/timestamp, retrieves conversation history for context continuity across follow-up queries |
-| **ContextResolver** | Analyzes recent conversation history to extract the current student being discussed and the active topic, so follow-up queries like "What about his triggers?" resolve correctly without re-stating the student name |
-| **LLMPlanner** | Receives the teacher's query along with conversation context and produces a typed execution plan — a sequence of steps like `student_lookup`, `rag_search`, `admin_doc`, `predict`, each with dependencies, so agents execute in the correct order |
-| **PlanExecutor** | Walks through the plan steps sequentially, dispatching each to the appropriate agent, passing results from earlier steps as context to later ones, and synthesizing combined results for multi-step plans |
-| **Presenter** | Applies voice transformation to raw agent output using a consistent warm and respectful tone, with a calmer grounding variant for sensitive situations (meltdowns, crises, parent conflicts) |
+| Service | LLM Calls | Role |
+|---------|-----------|------|
+| **Orchestrator** | ✗ | Coordinates the entire request pipeline — initializes tracing, persists conversation history to Supabase, invokes PLANNER → PLAN_EXECUTOR (which internally calls agents and PRESENTER) |
+| **PLANNER** | ✓ | Receives the teacher's query along with conversation context and produces a typed execution plan — a sequence of steps like `student_lookup`, `rag_search`, `admin_doc`, `predict`, each with dependencies, so agents execute in the correct order |
+| **PLAN_EXECUTOR** | ✗ | Walks through the plan steps sequentially, dispatching each to the appropriate agent and passing results from earlier steps as context to later ones. Calls PRESENTER for final voice transformation |
+| **PRESENTER** | ✓ | Applies voice transformation to raw agent output using a consistent warm and respectful tone, with a calmer grounding variant for sensitive situations (meltdowns, crises, parent conflicts) |
 
 ### Memory Architecture
 
@@ -72,7 +70,7 @@ The system uses a **multi-agent architecture** with LLM-based planning:
 
 ### Optimization Strategies
 
-1. **LLM-Based Planning**: The Planner decomposes each query into the minimal set of agent calls needed — a simple "tell me about Alex" triggers only STUDENT_AGENT, while "prepare Alex for the fire drill" triggers STUDENT_AGENT then RAG_AGENT with dependency chaining
+1. **LLM-Based Planning**: The **PLANNER** decomposes each query into the minimal set of agent calls needed — a simple "tell me about Alex" triggers only STUDENT_AGENT, while "prepare Alex for the fire drill" triggers STUDENT_AGENT then RAG_AGENT with dependency chaining
 2. **Two-Tier Response Caching**: Supabase (persistent) + in-memory (fast) cache for RAG, Admin, and Predict queries — identical or semantically similar queries return cached results without additional LLM calls
 3. **Budget Tracking**: Hard spending limit ($13) enforced with an async lock per LLM call; every call logs model, tokens, and cost to `budget_tracking` in Supabase for full auditability
 4. **Lazy Agent Initialization**: Agents, services, and memory clients are created only on first use — if a request only needs RAG_AGENT, the other agents are never instantiated
@@ -131,7 +129,7 @@ curl -X POST https://co-teacher-nl17.onrender.com/api/execute \
       "response": { "content": "Evidence-based sensory strategies...", "tokens": { "total": 2507 }, "cost": 0.00128 }
     },
     {
-      "module": "ORCHESTRATOR",
+      "module": "PRESENTER",
       "prompt": { "action": "present_response", "query_snippet": "What are Alex's sensory triggers..." },
       "response": { "content": "Final teacher-friendly response...", "tokens": { "total": 2780 }, "cost": 0.00082 }
     }

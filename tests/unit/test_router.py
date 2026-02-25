@@ -586,5 +586,5 @@ class TestLLMFallbackRouting:
         # Step should be tracked
         mock_tracker.add_step.assert_called_once()
         call_args = mock_tracker.add_step.call_args
-        assert call_args.kwargs["module"] == "ORCHESTRATOR"
+        assert call_args.kwargs["module"] == "ROUTER"
         assert call_args.kwargs["prompt"]["action"] == "llm_routing"

@@ -21,8 +21,17 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-# Module names must match these (from step_tracker.py)
-VALID_MODULES = ["ORCHESTRATOR", "STUDENT_AGENT", "RAG_AGENT", "ADMIN_AGENT", "PREDICT_AGENT"]
+# Module names must match these (modules that track LLM steps)
+VALID_MODULES = [
+    "ORCHESTRATOR",      # Coordination (no direct LLM calls)
+    "PLANNER",           # Query decomposition
+    "PLAN_EXECUTOR",     # Multi-step synthesis
+    "PRESENTER",         # Voice transformation
+    "STUDENT_AGENT",     # Student profile operations
+    "RAG_AGENT",         # Teaching strategy retrieval
+    "ADMIN_AGENT",       # Document generation
+    "PREDICT_AGENT"      # Risk predictions
+]
 
 
 def check_mmdc_installed() -> bool:

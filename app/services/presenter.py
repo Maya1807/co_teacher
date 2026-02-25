@@ -21,7 +21,7 @@ class Presenter:
     Extracted from orchestrator to separate presentation concerns.
     """
 
-    MODULE_NAME = "ORCHESTRATOR"  # Steps tracked under orchestrator
+    MODULE_NAME = "PRESENTER"
 
     def __init__(
         self,

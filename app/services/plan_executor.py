@@ -24,7 +24,7 @@ class PlanExecutor:
     in dependency order and optionally synthesizing multi-step results.
     """
 
-    MODULE_NAME = "ORCHESTRATOR"
+    MODULE_NAME = "PLAN_EXECUTOR"
 
     def __init__(
         self,

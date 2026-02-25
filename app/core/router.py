@@ -545,7 +545,7 @@ class RuleBasedRouter:
         # Track step if tracker is configured
         if self.tracker:
             self.tracker.add_step(
-                module="ORCHESTRATOR",
+                module="ROUTER",
                 prompt={
                     "action": "llm_routing",
                     "query_snippet": query

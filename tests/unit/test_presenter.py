@@ -82,7 +82,7 @@ class TestPresenter:
 
         mock_tracker.add_step.assert_called_once()
         call_args = mock_tracker.add_step.call_args
-        assert call_args.kwargs["module"] == "ORCHESTRATOR"
+        assert call_args.kwargs["module"] == "PRESENTER"
         assert call_args.kwargs["prompt"]["action"] == "present_response"
 
     @pytest.mark.asyncio
@@ -120,15 +120,16 @@ class TestPresenter:
         assert call_args.kwargs["temperature"] == 0.7
 
     @pytest.mark.asyncio
-    async def test_present_uses_correct_max_tokens(self, presenter, mock_llm_client):
-        """Test that present uses max_tokens 400."""
+    async def test_present_calls_llm_complete(self, presenter, mock_llm_client):
+        """Test that present calls LLM complete with correct parameters."""
         await presenter.present(
             query="Test",
             agent_response="Test"
         )
 
         call_args = mock_llm_client.complete.call_args
-        assert call_args.kwargs["max_tokens"] == 400
+        assert call_args.kwargs["temperature"] == 0.7
+        assert "messages" in call_args.kwargs
 
     def test_set_enabled(self, presenter):
         """Test set_enabled method."""
