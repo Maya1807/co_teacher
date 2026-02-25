@@ -1,8 +1,9 @@
 """
 Presenter Service.
 Transforms agent responses into user-facing messages with consistent voice.
+For multi-step plans, also merges multiple agent results into one response.
 """
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
 
 from app.utils.prompts import FINAL_PRESENTATION_PROMPT
 
@@ -41,6 +42,28 @@ class Presenter:
         self.tracker = step_tracker
         self.enabled = enabled
 
+    @staticmethod
+    def format_multi_step_content(
+        step_results: List[Dict[str, Any]],
+    ) -> str:
+        """
+        Format multiple agent results into a single content block
+        for the presentation prompt.
+
+        Args:
+            step_results: List of dicts with 'agent' and 'response' keys
+
+        Returns:
+            Formatted content string
+        """
+        parts = []
+        for sr in step_results:
+            agent = sr.get("agent", "AGENT")
+            response_text = sr.get("response", "")
+            if response_text:
+                parts.append(f"[{agent}]\n{response_text}")
+        return "\n\n".join(parts)
+
     async def present(
         self,
         query: str,
@@ -49,10 +72,12 @@ class Presenter:
     ) -> str:
         """
         Transform agent response to friendly user-facing message.
+        For multi-step plans, merges and transforms in a single LLM call.
 
         Args:
             query: Original user query
-            agent_response: Raw response from agent(s)
+            agent_response: Raw response from agent(s), or pre-formatted
+                multi-step content from format_multi_step_content()
             skip_for_updates: If True, return response as-is (for update confirmations)
 
         Returns:
@@ -66,22 +91,23 @@ class Presenter:
             agent_response=agent_response
         )
 
+        messages_sent = [{"role": "user", "content": prompt}]
+
         response = await self.llm.complete(
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
+            messages=messages_sent,
             temperature=0.7,
         )
 
         content = response.get("content", agent_response)
 
-        # Track step
+        # Track step (include full messages for traceability)
         self.tracker.add_step(
             module=self.MODULE_NAME,
             prompt={
                 "action": "present_response",
                 "query_snippet": query,
-                "original_length": len(agent_response)
+                "original_length": len(agent_response),
+                "messages": messages_sent,
             },
             response={
                 "content": content,

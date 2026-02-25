@@ -112,22 +112,24 @@ class LLMPlanner:
                 previous_agents=", ".join(previous_agents) or "None",
             )
 
+        messages_sent = [
+            {"role": "system", "content": PLANNER_SYSTEM},
+            {"role": "user", "content": prompt},
+        ]
         response = await self.llm.complete(
-            messages=[
-                {"role": "system", "content": PLANNER_SYSTEM},
-                {"role": "user", "content": prompt},
-            ],
+            messages=messages_sent,
             temperature=0.3,
         )
 
         content = response.get("content", "")
 
-        # Track step
+        # Track step (include full messages for traceability)
         self.tracker.add_step(
             module=self.MODULE_NAME,
             prompt={
                 "action": "create_plan",
                 "query_snippet": query,
+                "messages": messages_sent,
             },
             response={
                 "content": content,

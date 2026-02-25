@@ -1,6 +1,6 @@
 """
 Unit tests for PlanExecutor.
-Tests step execution, dependency enrichment, synthesis, and presentation.
+Tests step execution, dependency enrichment, and presentation.
 """
 import pytest
 from unittest.mock import AsyncMock, MagicMock
@@ -186,10 +186,10 @@ class TestExecuteMultiStep:
         assert "Alex is a 4th grader" in prompt  # from mock student agent response
 
     @pytest.mark.asyncio
-    async def test_execute_synthesizes_multi_step(
-        self, executor, mock_llm_client
+    async def test_execute_multi_step_formats_for_presenter(
+        self, executor, mock_llm_client, mock_presenter
     ):
-        """Multi-step plans trigger synthesis LLM call."""
+        """Multi-step results are formatted and passed to Presenter (no synthesis LLM call)."""
         plan = ExecutionPlan(
             steps=[
                 PlanStep(step_index=0, agent=AgentType.STUDENT_AGENT, task="Get profile"),
@@ -201,12 +201,17 @@ class TestExecuteMultiStep:
 
         result = await executor.execute(plan)
 
-        # Synthesis LLM call should have happened
-        mock_llm_client.complete.assert_called_once()
-        call_args = mock_llm_client.complete.call_args
-        user_msg = call_args.kwargs["messages"][0]["content"]
-        assert "What strategies work for Alex?" in user_msg
-        assert result["response"] == "Synthesized response combining all results."
+        # PlanExecutor should NOT make any LLM calls — synthesis is removed
+        mock_llm_client.complete.assert_not_called()
+
+        # Presenter should be called with the formatted multi-step content
+        mock_presenter.present.assert_called_once()
+        call_args = mock_presenter.present.call_args
+        raw_content = call_args[0][1]  # second positional arg = agent_response
+        assert "[STUDENT_AGENT]" in raw_content
+        assert "[RAG_AGENT]" in raw_content
+        assert "Alex is a 4th grader" in raw_content
+        assert "Visual schedules" in raw_content
 
 
 class TestPresentation:

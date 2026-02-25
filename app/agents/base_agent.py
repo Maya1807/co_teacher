@@ -74,10 +74,10 @@ class BaseAgent(ABC):
         # Handle None content
         content = result.get("content") or ""
 
-        # Track the step
+        # Track the step (include full messages for traceability)
         self.tracker.add_step(
             module=self.MODULE_NAME,
-            prompt=prompt_summary,
+            prompt={**prompt_summary, "messages": messages},
             response={
                 "content": content if content else "(empty response)",
                 "tokens": result.get("tokens_used", 0),
@@ -106,7 +106,7 @@ class BaseAgent(ABC):
         # Track the step with custom response summary
         self.tracker.add_step(
             module=self.MODULE_NAME,
-            prompt=prompt_summary,
+            prompt={**prompt_summary, "messages": messages},
             response=response_summary
         )
 

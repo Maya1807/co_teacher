@@ -69,20 +69,8 @@ Conversation context (from prior messages):
 
 IMPORTANT: If the request uses pronouns like "he", "she", "they", "him", "her", or "the student" without naming anyone, it likely refers to the student from prior messages above. Extract that as the student_name."""
 
-PLAN_SYNTHESIS_PROMPT = """Synthesize the results from multiple agents into one coherent response for the teacher.
-
-Teacher's original question: {query}
-
-Agent results:
-{step_results}
-
-Combine these into a single, natural response that:
-- Addresses the teacher's question directly
-- Weaves together information from all agents seamlessly
-- Keeps it concise (3-5 sentences for most queries)
-- Does not repeat the same information twice
-
-Output content only. Tone is applied at the final presentation layer."""
+# PLAN_SYNTHESIS_PROMPT removed — synthesis is now handled by PRESENTER
+# in a single LLM call (see FINAL_PRESENTATION_PROMPT).
 
 
 # ==================== ORCHESTRATOR PROMPTS ====================
@@ -457,6 +445,10 @@ Provide:
 # ==================== SYNTHESIS PROMPTS ====================
 # Used when combining information from multiple sources
 # NOTE: These produce CONTENT ONLY. Voice is applied by FINAL_PRESENTATION_PROMPT.
+# NOTE: MULTI_AGENT_SYNTHESIS_PROMPT and PERSONALIZED_STRATEGY_PROMPT are
+#       retained for potential direct use but are no longer used by any
+#       active service (ResponseCombiner was removed — Presenter now
+#       handles multi-step merging via FINAL_PRESENTATION_PROMPT).
 
 MULTI_AGENT_SYNTHESIS_PROMPT = """Synthesize information to answer the teacher's question.
 
@@ -505,6 +497,11 @@ Teacher asked: {query}
 
 Content to present:
 {agent_response}
+
+═══ MULTI-SOURCE CONTENT ═══
+
+If the content above contains results from multiple agents (separated by headers),
+weave them into ONE seamless answer. Do not repeat info or mention agents.
 
 ═══ VOICE GUIDELINES ═══
 

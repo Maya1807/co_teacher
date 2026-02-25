@@ -170,3 +170,51 @@ class TestPresenter:
         prompt_data = call_args.kwargs["prompt"]
         assert prompt_data["original_length"] == 500
         assert len(prompt_data["query_snippet"]) <= 50
+
+
+class TestFormatMultiStepContent:
+    """Tests for Presenter.format_multi_step_content static method."""
+
+    def test_formats_multiple_agent_results(self):
+        """Multiple agent results are formatted with headers."""
+        step_results = [
+            {"agent": "STUDENT_AGENT", "response": "Alex is a 4th grader."},
+            {"agent": "RAG_AGENT", "response": "Visual schedules work well."},
+        ]
+
+        result = Presenter.format_multi_step_content(step_results)
+
+        assert "[STUDENT_AGENT]" in result
+        assert "Alex is a 4th grader." in result
+        assert "[RAG_AGENT]" in result
+        assert "Visual schedules work well." in result
+
+    def test_skips_empty_responses(self):
+        """Empty responses are excluded from formatted output."""
+        step_results = [
+            {"agent": "STUDENT_AGENT", "response": "Alex info."},
+            {"agent": "RAG_AGENT", "response": ""},
+            {"agent": "PREDICT_AGENT", "response": "Forecast data."},
+        ]
+
+        result = Presenter.format_multi_step_content(step_results)
+
+        assert "[STUDENT_AGENT]" in result
+        assert "[RAG_AGENT]" not in result
+        assert "[PREDICT_AGENT]" in result
+
+    def test_single_result(self):
+        """Single result still gets a header."""
+        step_results = [
+            {"agent": "RAG_AGENT", "response": "Strategy info."},
+        ]
+
+        result = Presenter.format_multi_step_content(step_results)
+
+        assert "[RAG_AGENT]" in result
+        assert "Strategy info." in result
+
+    def test_empty_list_returns_empty_string(self):
+        """Empty list returns empty string."""
+        result = Presenter.format_multi_step_content([])
+        assert result == ""

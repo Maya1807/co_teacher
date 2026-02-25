@@ -6,7 +6,6 @@ from typing import Dict, Any, Optional, TYPE_CHECKING
 
 from app.core.router import AgentType
 from app.core.planner import ExecutionPlan, PlanStep
-from app.utils.prompts import PLAN_SYNTHESIS_PROMPT
 
 if TYPE_CHECKING:
     from app.agents.student_agent import StudentAgent
@@ -110,7 +109,16 @@ class PlanExecutor:
 
         # All steps done — produce final response
         if plan.is_multi_step:
-            raw_response = await self._synthesize(plan)
+            # Format all step results for Presenter to merge + transform
+            step_results = []
+            for step in plan.steps:
+                if step.result:
+                    step_results.append({
+                        "agent": step.agent.value,
+                        "response": step.result.get("response", ""),
+                    })
+            from app.services.presenter import Presenter
+            raw_response = Presenter.format_multi_step_content(step_results)
         else:
             # Single step — use its response directly
             raw_response = plan.steps[0].result.get("response", "") if plan.steps else ""
@@ -200,46 +208,6 @@ class PlanExecutor:
                     )
 
         return "\n".join(parts)
-
-    async def _synthesize(self, plan: ExecutionPlan) -> str:
-        """Synthesize results from multiple steps into one response."""
-        step_results_parts = []
-        for step in plan.steps:
-            if step.result:
-                response_text = step.result.get("response", "(no response)")
-                step_results_parts.append(
-                    f"[{step.agent.value} — step {step.step_index}]\n{response_text}"
-                )
-
-        step_results_text = "\n\n".join(step_results_parts)
-
-        prompt = PLAN_SYNTHESIS_PROMPT.format(
-            query=plan.original_query,
-            step_results=step_results_text,
-        )
-
-        response = await self.llm.complete(
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-        )
-
-        content = response.get("content", "")
-
-        self.tracker.add_step(
-            module=self.MODULE_NAME,
-            prompt={
-                "action": "synthesize_plan_results",
-                "query_snippet": plan.original_query,
-                "num_steps": len(plan.steps),
-            },
-            response={
-                "content": content,
-                "tokens": response.get("tokens_used"),
-                "cost": response.get("cost", 0),
-            },
-        )
-
-        return content
 
     @staticmethod
     def _is_asking_question(query: str) -> bool:

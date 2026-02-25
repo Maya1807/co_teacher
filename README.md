@@ -32,10 +32,10 @@ The system uses a **multi-agent architecture** with LLM-based planning:
 1. **Teacher sends a query** via `POST /api/execute`
 2. **Orchestrator** initializes request-scoped tracing, persists the message to Supabase, and loads conversation history
 3. **PLANNER** 🤖 decomposes the query into typed plan steps (e.g., `student_lookup`, `rag_search`, `admin_doc`, `predict`)
-4. **PLAN_EXECUTOR** 🤖 dispatches each step to the appropriate specialized agent
+4. **PLAN_EXECUTOR** dispatches each step to the appropriate specialized agent
 5. **Agents** 🤖 execute their tasks using LLM calls, reading from memory stores (STUDENT/ADMIN/PREDICT → Supabase, RAG → Pinecone). Results are passed back to PLAN_EXECUTOR as context for subsequent agents
-6. **PLAN_EXECUTOR** collects agent results and passes them to PRESENTER
-7. **PRESENTER** 🤖 applies voice transformation to create a natural teacher-friendly response
+6. **PLAN_EXECUTOR** formats agent results and passes them to PRESENTER
+7. **PRESENTER** 🤖 merges multi-agent results and applies voice transformation in a single LLM call
 8. **Orchestrator** persists the assistant response to Supabase and returns the result with full step traces (cost, tokens, timing)
 
 ### Agent Descriptions
@@ -58,8 +58,8 @@ The system uses a **multi-agent architecture** with LLM-based planning:
 |---------|-----------|------|
 | **Orchestrator** | ✗ | Coordinates the entire request pipeline — initializes tracing, persists conversation history to Supabase, invokes PLANNER → PLAN_EXECUTOR (which internally calls agents and PRESENTER) |
 | **PLANNER** | ✓ | Receives the teacher's query along with conversation context and produces a typed execution plan — a sequence of steps like `student_lookup`, `rag_search`, `admin_doc`, `predict`, each with dependencies, so agents execute in the correct order |
-| **PLAN_EXECUTOR** | ✗ | Walks through the plan steps sequentially, dispatching each to the appropriate agent and passing results from earlier steps as context to later ones. Calls PRESENTER for final voice transformation |
-| **PRESENTER** | ✓ | Applies voice transformation to raw agent output using a consistent warm and respectful tone, with a calmer grounding variant for sensitive situations (meltdowns, crises, parent conflicts) |
+| **PLAN_EXECUTOR** | ✗ | Walks through the plan steps sequentially, dispatching each to the appropriate agent and passing results from earlier steps as context to later ones. Formats multi-step results for PRESENTER |
+| **PRESENTER** | ✓ | Merges multi-agent results and applies voice transformation in a single LLM call using a warm and respectful tone, with a calmer grounding variant for sensitive situations (meltdowns, crises, parent conflicts) |
 
 ### Memory Architecture
 
@@ -233,9 +233,8 @@ co_teacher/
 │   │   ├── conversation_service.py  # Conversation lifecycle and message persistence
 │   │   ├── context_resolver.py      # Student/topic extraction from chat history
 │   │   ├── plan_executor.py         # Sequential agent dispatch with dependency chaining
-│   │   ├── presenter.py             # Voice transformation (warm vs. professional tone)
 │   │   ├── agent_executor.py        # Simple single-agent dispatch
-│   │   └── response_combiner.py     # Multi-agent result synthesis
+│   │   └── presenter.py             # Voice transformation + multi-step merging
 │   ├── utils/
 │   │   └── prompts.py           # System prompt templates for all agents
 │   ├── config.py                # Environment-based app configuration

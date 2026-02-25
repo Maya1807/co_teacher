@@ -10,7 +10,7 @@ import os
 router = APIRouter()
 
 # Module names must match step_tracker.VALID_MODULES
-VALID_MODULES = ["ORCHESTRATOR", "PLANNER", "STUDENT_AGENT", "RAG_AGENT", "ADMIN_AGENT", "PREDICT_AGENT"]
+VALID_MODULES = ["ORCHESTRATOR", "PLANNER", "PLAN_EXECUTOR", "PRESENTER", "STUDENT_AGENT", "RAG_AGENT", "ADMIN_AGENT", "PREDICT_AGENT"]
 
 # Architecture description
 ARCHITECTURE_DESCRIPTION = {
@@ -34,7 +34,7 @@ ARCHITECTURE_DESCRIPTION = {
         "PLANNER": (
             "LLM-based query decomposition layer. Receives the teacher's query and "
             "decomposes it into a typed execution plan (student_lookup, rag_search, "
-            "admin_doc, predict, synthesize steps). Each plan step is logged here."
+            "admin_doc, predict steps). Each plan step is logged here."
         ),
         "STUDENT_AGENT": (
             "Manages student profiles. Retrieves and updates triggers, successful "
@@ -58,10 +58,9 @@ ARCHITECTURE_DESCRIPTION = {
     "services": {
         "ConversationService": "Handles conversation CRUD and message persistence in Supabase",
         "ContextResolver": "Extracts context from conversation history, resolves student identity",
-        "LLMPlanner": "Decomposes teacher queries into typed plan steps (student_lookup, rag_search, admin_doc, predict, synthesize)",
-        "PlanExecutor": "Executes plan steps sequentially, dispatching to appropriate agents and synthesizing multi-step results",
-        "Presenter": "Transforms raw agent output into the teacher's preferred communication voice (two tones: GROUNDING for crisis, STANDARD for normal)",
-        "ResponseCombiner": "Synthesizes responses when StudentAgent + RAGAgent work together for personalized recommendations",
+        "LLMPlanner": "Decomposes teacher queries into typed plan steps (student_lookup, rag_search, admin_doc, predict)",
+        "PlanExecutor": "Executes plan steps sequentially, dispatching to appropriate agents and formatting results for Presenter",
+        "Presenter": "Merges multi-agent results and applies voice transformation in a single LLM call (two tones: GROUNDING for crisis, STANDARD for normal)",
         "AgentExecutor": "Simple dispatch layer that routes to agents by AgentType"
     },
     "memory": {
@@ -82,7 +81,7 @@ ARCHITECTURE_DESCRIPTION = {
         "4. ContextResolver extracts conversation context (recent student, topic, etc.)",
         "5. LLMPlanner decomposes query into typed plan steps via LLM call",
         "6. PlanExecutor iterates plan steps, dispatching each to the appropriate agent",
-        "7. For multi-step plans, PlanExecutor synthesizes combined results via LLM",
+        "7. For multi-step plans, Presenter merges agent results and applies voice in one LLM call",
         "8. Presenter applies voice transformation to the final response",
         "9. ConversationService stores assistant response",
         "10. All steps (with cost, tokens, timing) returned in response"

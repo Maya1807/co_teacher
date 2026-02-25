@@ -25,7 +25,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 VALID_MODULES = [
     "ORCHESTRATOR",      # Coordination (no direct LLM calls)
     "PLANNER",           # Query decomposition
-    "PLAN_EXECUTOR",     # Multi-step synthesis
+    "PLAN_EXECUTOR",     # Agent dispatch (no LLM calls)
     "PRESENTER",         # Voice transformation
     "STUDENT_AGENT",     # Student profile operations
     "RAG_AGENT",         # Teaching strategy retrieval
