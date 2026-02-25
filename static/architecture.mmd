@@ -9,8 +9,17 @@
 }}%%
 
 flowchart TB
-    TEACHER["🧑‍🏫 <b>Teacher</b>"]
-    GUIAPI["🌐 <b>GUI / REST API</b>"]
+
+    subgraph LEGEND["Key"]
+        direction LR
+        Lllm["LLM call\n(purple)"]
+        Lnollm["No LLM\nPure logic (teal)"]
+        Lagent["Specialist agent\nLLM call (green)"]
+        Lmem[("Memory store\n(orange)")]
+    end
+
+    TEACHER["<b>Teacher</b>"]
+    GUIAPI["<b>GUI / REST API</b>"]
 
     subgraph ORCH_LAYER["<b>Orchestration Layer</b>"]
         direction TB
@@ -18,19 +27,19 @@ flowchart TB
         subgraph SVCBOX["<b>Internal Services</b>"]
             direction LR
             CS["<b>ConversationService</b><br/><small>persist messages</small>"]
-            CR["<b>ContextResolver</b><br/><small>extract conv_context<br/>resolve student profile</small>"]
+            CR["<b>ContextResolver</b><br/><small>extract conv_context<br/>resolve student identity</small>"]
         end
     end
 
-    PLAN["🤖 <b>PLANNER</b><br/><small>PLANNER_SYSTEM<br/>+ query + conv_context<br/>[+ history addendum]</small>"]
+    PLAN["<b>PLANNER</b><br/><small>LLM call<br/>PLANNER_SYSTEM<br/>+ query + conv_context<br/>[+ history addendum]</small>"]
 
     subgraph EXEC_LAYER["<b>Execution Layer</b>"]
         direction TB
-        EXEC["<b>PLAN_EXECUTOR</b><br/><small>no LLM · dispatches each step<br/>task + student_context<br/>[+ prior step results for deps]</small>"]
-        PRES["🤖 <b>PRESENTER</b><br/><small>FINAL_PRESENTATION_PROMPT<br/>query + formatted agent results<br/>→ voice transformation</small>"]
+        EXEC["<b>PLAN_EXECUTOR</b><br/><small>no LLM · dispatches each step<br/>task + context<br/>[+ prior step results for deps]</small>"]
+        PRES["<b>PRESENTER</b><br/><small>LLM call<br/>FINAL_PRESENTATION_PROMPT<br/>query + formatted agent results<br/>voice transformation</small>"]
     end
 
-    subgraph AGENTS["<b>Specialist Agents</b> — all 🤖 LLM"]
+    subgraph AGENTS["<b>Specialist Agents</b>  (all make LLM calls)"]
         direction LR
         SA["<b>STUDENT_AGENT</b><br/><small>task + student_id<br/>read / write profile</small>"]
         RA["<b>RAG_AGENT</b><br/><small>task + failed_methods<br/>+ learning_style</small>"]
@@ -40,8 +49,8 @@ flowchart TB
 
     subgraph MEMORY["<b>Memory</b>"]
         direction LR
-        SB[("🗄 <b>Supabase</b><br/><small>students · conversations<br/>events · budget_tracking<br/>daily_context</small>")]
-        PC[("🔍 <b>Pinecone</b><br/><small>teaching-methods<br/>interventions<br/>student-profiles</small>")]
+        SB[("<b>Supabase</b><br/><small>students · conversations<br/>events · budget_tracking<br/>daily_context</small>")]
+        PC[("<b>Pinecone</b><br/><small>teaching-methods<br/>interventions<br/>student-profiles</small>")]
     end
 
     %% ── Entry ──
@@ -56,9 +65,9 @@ flowchart TB
     %% ── ContextResolver: extract conv_context for Planner ──
     CR -->|"conv_context<br/>(recent_student, history_summary,<br/>previous_agents)"| PLAN
 
-    %% ── ContextResolver: resolve student profile ──
-    CR -->|"student_name lookup"| SB
-    SB -->|"student_context<br/>(full profile)"| EXEC
+    %% ── ContextResolver: look up relevant student + domain context ──
+    CR -->|"student_name lookup"| MEMORY
+    MEMORY -->|"relevant context<br/>(student profile + domain knowledge)"| EXEC
 
     %% ── Orchestrator → Planner ──
     ORCH -->|"query"| PLAN
@@ -67,17 +76,16 @@ flowchart TB
     PLAN -->|"ExecutionPlan<br/>(steps + agent assignments<br/>+ student_name)"| EXEC
 
     %% ── Executor → Agents ──
-    EXEC -->|"task + student_context<br/>[+ prior step results]"| SA
-    EXEC -->|"task + student_context<br/>[+ prior step results]"| RA
-    EXEC -->|"task + student_context<br/>[+ prior step results]"| AA
+    EXEC -->|"task + context<br/>[+ prior step results]"| SA
+    EXEC -->|"task + context<br/>[+ prior step results]"| RA
+    EXEC -->|"task + context<br/>[+ prior step results]"| AA
     EXEC -->|"task<br/>[+ prior step results]"| PA
 
     %% ── Agents → results ──
     SA & RA & AA & PA -->|"step results"| EXEC
 
-    %% ── Agents ↔ Memory (all reads and writes as a block) ──
+    %% ── Agents read / write memory (both stores) ──
     SA & RA & AA & PA -->|"read / write"| MEMORY
-    MEMORY -->|"enriched context<br/>(profile, strategies, events)"| EXEC
 
     %% ── Execution → Presentation ──
     EXEC -->|"format_multi_step_content<br/>(labelled agent blocks)"| PRES
@@ -96,14 +104,15 @@ flowchart TB
     classDef api fill:#E3F2FD,stroke:#1976D2,stroke-width:2px,color:#0D47A1
     classDef svc fill:#F8F9FA,stroke:#90A4AE,stroke-width:1px,color:#37474F
 
-    class PLAN,PRES llm
-    class ORCH,EXEC noLlm
-    class SA,RA,AA,PA agent
-    class SB,PC mem
+    class PLAN,PRES,Lllm llm
+    class ORCH,EXEC,Lnollm noLlm
+    class SA,RA,AA,PA,Lagent agent
+    class SB,PC,Lmem mem
     class TEACHER person
     class GUIAPI api
     class CS,CR svc
 
+    style LEGEND fill:#FAFAFA,stroke:#CFD8DC,stroke-width:1px,stroke-dasharray:3 2
     style ORCH_LAYER fill:#E8F5FB,stroke:#90CAF9,stroke-width:1px
     style SVCBOX fill:#EEF2F7,stroke:#B0BEC5,stroke-width:1px,stroke-dasharray:4 3
     style EXEC_LAYER fill:#F8F0FC,stroke:#CE93D8,stroke-width:1px
