@@ -123,14 +123,10 @@ class LLMPlanner:
 
         content = response.get("content", "")
 
-        # Track step (include full messages for traceability)
+        # Track step — only store what was actually sent to the LLM
         self.tracker.add_step(
             module=self.MODULE_NAME,
-            prompt={
-                "action": "create_plan",
-                "query_snippet": query,
-                "messages": messages_sent,
-            },
+            prompt={"messages": messages_sent},
             response={
                 "content": content,
                 "tokens": response.get("tokens_used"),

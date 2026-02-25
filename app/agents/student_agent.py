@@ -466,12 +466,6 @@ class StudentAgent(BaseAgent):
         # Get student_id - Supabase uses 'id', Pinecone may use 'student_id'
         student_id_value = profile.get("id") or profile.get("student_id")
 
-        # Add step for context retrieval (non-LLM operation)
-        self.add_step(
-            prompt={"action": "get_context", "student": student_name or student_id},
-            response={"found": True, "student_id": student_id_value}
-        )
-
         return {
             "student_id": student_id_value,
             "name": profile.get("name"),

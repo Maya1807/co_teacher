@@ -100,15 +100,10 @@ class Presenter:
 
         content = response.get("content", agent_response)
 
-        # Track step (include full messages for traceability)
+        # Track step — only store what was actually sent to the LLM
         self.tracker.add_step(
             module=self.MODULE_NAME,
-            prompt={
-                "action": "present_response",
-                "query_snippet": query,
-                "original_length": len(agent_response),
-                "messages": messages_sent,
-            },
+            prompt={"messages": messages_sent},
             response={
                 "content": content,
                 "tokens": response.get("tokens_used"),
