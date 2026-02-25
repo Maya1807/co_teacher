@@ -159,8 +159,8 @@ class TestPresenter:
         assert result == ""
 
     @pytest.mark.asyncio
-    async def test_present_step_includes_lengths(self, presenter, mock_tracker):
-        """Test that step tracking includes content lengths."""
+    async def test_present_step_tracks_messages(self, presenter, mock_tracker):
+        """Test that step tracking stores only the messages sent to the LLM."""
         await presenter.present(
             query="Short query",
             agent_response="A" * 500  # Long response
@@ -168,8 +168,10 @@ class TestPresenter:
 
         call_args = mock_tracker.add_step.call_args
         prompt_data = call_args.kwargs["prompt"]
-        assert prompt_data["original_length"] == 500
-        assert len(prompt_data["query_snippet"]) <= 50
+        assert "messages" in prompt_data
+        assert isinstance(prompt_data["messages"], list)
+        assert len(prompt_data["messages"]) == 1
+        assert prompt_data["messages"][0]["role"] == "user"
 
 
 class TestFormatMultiStepContent:
