@@ -129,8 +129,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PLANNER',
                 'prompt': {
-                    'action': 'create_plan',
-                    'query_snippet': "What are Alex's sensory triggers and how should I prepare him for the fire drill today?",
                     'messages': [
                         {
                             'role': 'system',
@@ -157,9 +155,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'STUDENT_AGENT',
                 'prompt': {
-                    'action': 'extract_update_info',
-                    'student': 'Alex Johnson',
-                    'query_snippet': "What are Alex's sensory triggers and how should I prepare him for the fire drill today?",
                     'messages': [
                         {
                             'role': 'user',
@@ -183,11 +178,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'RAG_AGENT',
                 'prompt': {
-                    'action': 'contextual_search',
-                    'student': 'Alex Johnson',
-                    'query_snippet': 'Using the profile data returned for Alex in step 0, generate evidence-based, practical guidance focu',
-                    'disability_type': 'autism',
-                    'methods_found': 0,
                     'messages': [
                         {
                             'role': 'system',
@@ -220,9 +210,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PRESENTER',
                 'prompt': {
-                    'action': 'present_response',
-                    'query_snippet': "What are Alex's sensory triggers and how should I ",
-                    'original_length': 1154,
                     'messages': [
                         {
                             'role': 'user',
@@ -257,8 +244,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PLANNER',
                 'prompt': {
-                    'action': 'create_plan',
-                    'query_snippet': 'Draft an IEP progress report for Jordan Smith',
                     'messages': [
                         {
                             'role': 'system',
@@ -285,9 +270,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'ADMIN_AGENT',
                 'prompt': {
-                    'action': 'iep_document',
-                    'student': 'Jordan Smith',
-                    'query_type': 'IEP',
                     'messages': [
                         {
                             'role': 'system',
@@ -316,9 +298,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PRESENTER',
                 'prompt': {
-                    'action': 'present_response',
-                    'query_snippet': 'Draft an IEP progress report for Jordan Smith',
-                    'original_length': 12830,
                     'messages': [
                         {
                             'role': 'user',
@@ -359,8 +338,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PLANNER',
                 'prompt': {
-                    'action': 'create_plan',
-                    'query_snippet': 'What de-escalation techniques can I use for a student with emotional behavioral disorder who is beco',
                     'messages': [
                         {
                             'role': 'system',
@@ -387,9 +364,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'RAG_AGENT',
                 'prompt': {
-                    'action': 'general_search',
-                    'query_snippet': 'What de-escalation techniques can I use for a student with emotional behavioral disorder who is beco',
-                    'methods_found': 7,
                     'messages': [
                         {
                             'role': 'system',
@@ -417,9 +391,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PRESENTER',
                 'prompt': {
-                    'action': 'present_response',
-                    'query_snippet': 'What de-escalation techniques can I use for a stud',
-                    'original_length': 6774,
                     'messages': [
                         {
                             'role': 'user',
@@ -452,8 +423,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PLANNER',
                 'prompt': {
-                    'action': 'create_plan',
-                    'query_snippet': 'What should I watch for today? Any students at risk?',
                     'messages': [
                         {
                             'role': 'system',
@@ -480,9 +449,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PREDICT_AGENT',
                 'prompt': {
-                    'action': 'daily_briefing',
-                    'events_count': 9,
-                    'predictions_count': 15,
                     'messages': [
                         {
                             'role': 'system',
@@ -510,9 +476,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PRESENTER',
                 'prompt': {
-                    'action': 'present_response',
-                    'query_snippet': 'What should I watch for today? Any students at ris',
-                    'original_length': 7575,
                     'messages': [
                         {
                             'role': 'user',
@@ -546,8 +509,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PLANNER',
                 'prompt': {
-                    'action': 'create_plan',
-                    'query_snippet': 'Alex had a meltdown during the fire drill today - loud noises really set him off',
                     'messages': [
                         {
                             'role': 'system',
@@ -574,9 +535,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'STUDENT_AGENT',
                 'prompt': {
-                    'action': 'extract_update_info',
-                    'student': 'Alex Johnson',
-                    'query_snippet': 'Alex had a meltdown during the fire drill today - loud noises really set him off',
                     'messages': [
                         {
                             'role': 'user',
@@ -600,9 +558,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'PRESENTER',
                 'prompt': {
-                    'action': 'present_response',
-                    'query_snippet': 'Alex had a meltdown during the fire drill today - ',
-                    'original_length': 131,
                     'messages': [
                         {
                             'role': 'user',
