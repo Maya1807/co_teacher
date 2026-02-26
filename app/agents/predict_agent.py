@@ -3,6 +3,7 @@ Predict Agent.
 Handles predictive analysis and proactive intervention suggestions based on
 upcoming events and student profiles.
 """
+import re
 from typing import Dict, Any, Optional, List
 
 from app.agents.base_agent import BaseAgent
@@ -28,17 +29,44 @@ class PredictAgent(BaseAgent):
 
     MODULE_NAME = "PREDICT_AGENT"
 
-    # Sensory factor keywords for matching triggers
+    # Sensory factor keywords for matching triggers.
+    # Keys must cover both the canonical names AND the actual event sensory_factor
+    # keys stored in the database (group_work, seated_work, loud_environment, etc.).
+    # Values are root words / prefixes matched with a leading \b so plurals and
+    # inflections are caught automatically (e.g. "smell" matches "smells").
     SENSORY_FACTOR_KEYWORDS = {
-        "loud_sounds": ["loud", "noise", "noisy", "sound", "alarm", "bell", "siren"],
-        "bright_lights": ["light", "bright", "flash", "strobe", "fluorescent"],
-        "crowds": ["crowd", "crowded", "people", "busy", "packed", "assembly"],
-        "unexpected": ["unexpected", "surprise", "sudden", "unannounced", "change"],
-        "transitions": ["transition", "change", "schedule", "routine", "different"],
+        # ── canonical / legacy names ──────────────────────────────────────────
+        "loud_sounds":      ["loud", "noise", "noisy", "sound", "alarm", "bell", "siren"],
+        "bright_lights":    ["light", "bright", "flash", "strobe", "fluorescent"],
+        "crowds":           ["crowd", "crowded", "people", "busy", "packed", "assembly"],
+        "unexpected":       ["unexpected", "surprise", "sudden", "unannounced", "change"],
+        "transitions":      ["transition", "change", "schedule", "routine", "different"],
         "physical_contact": ["touch", "contact", "physical", "bumping", "crowded"],
-        "time_pressure": ["timed", "rush", "hurry", "deadline", "pressure", "test"],
-        "confined_spaces": ["small", "confined", "cramped", "enclosed", "tight"],
-        "new_environment": ["new", "unfamiliar", "different", "outside", "field trip"],
+        "time_pressure":    ["timed", "rush", "hurry", "deadline", "pressure", "test"],
+        "confined_spaces":  ["small", "confined", "cramped", "enclosed", "tight"],
+        "new_environment":  ["new", "unfamiliar", "different", "outside", "field trip"],
+        # ── actual event sensory_factor keys used in the database ─────────────
+        # Loud / noisy setting (PE, fire drills, assemblies)
+        "loud_environment": ["loud", "noise", "noisy", "sound", "alarm", "siren"],
+        # Working in groups / with peers (risks: peer conflict, public reading)
+        "group_work":       ["peer", "public", "class", "group", "social", "correction", "conflict"],
+        # Hands-on activities (risks: texture/tactile sensitivity)
+        "hands_on_activity": ["texture", "tactile", "touch", "material", "smell"],
+        # Desk / seated work (risks: ADHD / long sitting periods)
+        "seated_work":      ["sitting", "seated", "sedentary"],
+        # Sustained focus tasks (risks: frustration, boredom)
+        "requires_focus":   ["frustrat", "difficult", "boring", "repetitive", "focus", "attention"],
+        # Art / craft materials with smells and textures (sensory processing)
+        "sensory_materials": ["sensory", "texture", "smell", "scent", "tactile"],
+        # Open / creative activities (risks: ambiguity, unstructured time)
+        "creative_expression": ["unstructured", "ambiguous", "open", "change"],
+        # Competitive activities (risks: perceived unfairness, peer conflict)
+        "competitive":      ["unfair", "competi", "peer", "conflict", "pressure", "frustrat"],
+        # Physical / movement activities (risks: crowding, sensory overload)
+        "physical_activity": ["crowd", "physical", "movement", "contact", "bumping"],
+        # Positive / calming factors — no typical trigger keywords
+        "quiet_environment":  [],
+        "individual_attention": [],
     }
 
     async def process(
@@ -240,7 +268,7 @@ class PredictAgent(BaseAgent):
 
             for trigger in triggers:
                 trigger_lower = trigger.lower()
-                if any(kw in trigger_lower for kw in factor_keywords):
+                if any(re.search(r'\b' + re.escape(kw), trigger_lower) for kw in factor_keywords):
                     if trigger not in triggers_matched:
                         triggers_matched.append(trigger)
                     if factor not in factors_matched:
@@ -264,7 +292,7 @@ class PredictAgent(BaseAgent):
             # Check if student has any anxiety/sensory triggers
             anxiety_keywords = ["anxiety", "change", "unexpected", "routine", "sensory"]
             for trigger in triggers:
-                if any(kw in trigger.lower() for kw in anxiety_keywords):
+                if any(re.search(r'\b' + re.escape(kw), trigger.lower()) for kw in anxiety_keywords):
                     base_risk = "low"
                     triggers_matched.append(trigger)
                     factors_matched.append(f"event_type:{event_type}")
