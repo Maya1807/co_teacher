@@ -1551,6 +1551,29 @@ body {
     font-weight: 600;
     font-size: 0.875rem;
     color: var(--text-dark);
+    flex: 1;
+}
+
+.step-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 8px;
+    text-transform: uppercase;
+}
+
+.step-badge.llm {
+    background: #EDE7F6;
+    color: #6A1B9A;
+    border: 1px solid #CE93D8;
+}
+
+.step-badge.db {
+    background: #E3F2FD;
+    color: #1565C0;
+    border: 1px solid #90CAF9;
 }
 
 .chevron {

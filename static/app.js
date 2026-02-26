@@ -538,9 +538,16 @@ function renderTraceSteps(steps) {
         const promptHtml = formatTraceContent(step.prompt);
         const responseHtml = formatTraceContent(step.response);
 
+        // Determine step type for badge
+        const isDbStep = step.prompt && step.prompt.source;
+        const badgeHtml = isDbStep
+            ? '<span class="step-badge db">DB</span>'
+            : '<span class="step-badge llm">LLM</span>';
+
         stepDiv.innerHTML = `
             <div class="step-header" onclick="toggleStep(${index})">
                 <span class="step-module">${escapeHtml(moduleName)}</span>
+                ${badgeHtml}
                 <span class="chevron">▼</span>
             </div>
             <div class="step-body">

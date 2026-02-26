@@ -89,6 +89,12 @@ class StudentAgent(BaseAgent):
         # Get student_id for updates
         sid = profile.get("id") or profile.get("student_id")
 
+        # Trace the DB fetch so it's visible in the step log
+        self.add_step(
+            prompt={"source": "supabase", "action": "fetch_student_profile", "student": profile.get("name")},
+            response={"found": True, "student_id": sid, "fields": ["triggers", "successful_methods", "failed_methods", "learning_style", "disability_type"]}
+        )
+
         # Check if query contains implicit update information
         # (e.g., "Alex had a meltdown when the bell rang")
         # Use original_query when available so update extraction sees the
@@ -465,6 +471,12 @@ class StudentAgent(BaseAgent):
 
         # Get student_id - Supabase uses 'id', Pinecone may use 'student_id'
         student_id_value = profile.get("id") or profile.get("student_id")
+
+        # Trace the pre-execution profile lookup
+        self.add_step(
+            prompt={"source": "supabase", "action": "resolve_student_identity", "student": student_name or student_id},
+            response={"found": True, "student_id": student_id_value, "name": profile.get("name")}
+        )
 
         return {
             "student_id": student_id_value,
