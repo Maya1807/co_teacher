@@ -31,7 +31,7 @@ The system uses a **multi-agent architecture** with LLM-based planning:
 
 1. **Teacher sends a query** via `POST /api/execute`
 2. **Orchestrator** initializes request-scoped tracing, persists the message to Supabase, and loads conversation history
-3. **PLANNER** 🤖 decomposes the query into typed plan steps (e.g., `student_lookup`, `rag_search`, `admin_doc`, `predict`)
+3. **PLANNER** 🤖 parses the query using an LLM call to produce a typed execution plan — it extracts the student name (if any), determines which agents are needed, and defines dependency-ordered steps (e.g., `student_lookup`, `rag_search`, `admin_doc`, `predict`). The extracted student name drives Supabase lookups that pre-load the relevant student profile before agents run.
 4. **PLAN_EXECUTOR** dispatches each step to the appropriate specialized agent
 5. **Agents** 🤖 execute their tasks using LLM calls, reading from memory stores (STUDENT/ADMIN/PREDICT → Supabase, RAG → Pinecone). Results are passed back to PLAN_EXECUTOR as context for subsequent agents
 6. **PLAN_EXECUTOR** formats agent results and passes them to PRESENTER
@@ -57,7 +57,7 @@ The system uses a **multi-agent architecture** with LLM-based planning:
 | Service | LLM Calls | Role |
 |---------|-----------|------|
 | **Orchestrator** | ✗ | Coordinates the entire request pipeline — initializes tracing, persists conversation history to Supabase, invokes PLANNER → PLAN_EXECUTOR (which internally calls agents and PRESENTER) |
-| **PLANNER** | ✓ | Receives the teacher's query along with conversation context and produces a typed execution plan — a sequence of steps like `student_lookup`, `rag_search`, `admin_doc`, `predict`, each with dependencies, so agents execute in the correct order |
+| **PLANNER** | ✓ | Parses the teacher's query with an LLM call to produce a typed execution plan. Extracts the student name from natural language (e.g., "What are Alex's triggers?" → `student_name: "Alex"`), which drives a Supabase lookup that pre-loads the student's profile before any agent runs. Outputs dependency-ordered steps (`student_lookup`, `rag_search`, `admin_doc`, `predict`) so agents execute in the correct sequence |
 | **PLAN_EXECUTOR** | ✗ | Walks through the plan steps sequentially, dispatching each to the appropriate agent and passing results from earlier steps as context to later ones. Formats multi-step results for PRESENTER |
 | **PRESENTER** | ✓ | Merges multi-agent results and applies voice transformation in a single LLM call using a warm and respectful tone, with a calmer grounding variant for sensitive situations (meltdowns, crises, parent conflicts) |
 
@@ -115,23 +115,23 @@ curl -X POST https://co-teacher-nl17.onrender.com/api/execute \
   "steps": [
     {
       "module": "PLANNER",
-      "prompt": { "action": "create_plan", "query_snippet": "What are Alex's sensory triggers..." },
-      "response": { "content": "{ \"student_name\": \"Alex\", \"steps\": [...] }", "tokens": { "prompt": 689, "completion": 959, "total": 1648 }, "cost": 0.00068 }
+      "prompt": { "messages": [{"role": "system", "content": "..."}, {"role": "user", "content": "What are Alex's sensory triggers..."}] },
+      "response": { "content": "{\"student_name\": \"Alex\", \"steps\": [...]}", "tokens": 1648, "cost": 0.00068 }
     },
     {
       "module": "STUDENT_AGENT",
-      "prompt": { "action": "get_context", "student": "Alex" },
-      "response": { "found": true, "student_id": "STU001" }
+      "prompt": { "messages": [{"role": "system", "content": "..."}, {"role": "user", "content": "Student profile: Alex Johnson...\nQuery: What are Alex's sensory triggers..."}] },
+      "response": { "content": "Alex has the following sensory triggers: loud noises...", "tokens": 312, "cost": 0.00025 }
     },
     {
       "module": "RAG_AGENT",
-      "prompt": { "action": "general_search", "query_snippet": "What are Alex's sensory triggers..." },
-      "response": { "content": "Evidence-based sensory strategies...", "tokens": { "total": 2507 }, "cost": 0.00128 }
+      "prompt": { "messages": [{"role": "system", "content": "..."}, {"role": "user", "content": "Evidence-based strategies for sensory processing..."}] },
+      "response": { "content": "Evidence-based sensory strategies include...", "tokens": 2507, "cost": 0.00128 }
     },
     {
       "module": "PRESENTER",
-      "prompt": { "action": "present_response", "query_snippet": "What are Alex's sensory triggers..." },
-      "response": { "content": "Final teacher-friendly response...", "tokens": { "total": 2780 }, "cost": 0.00082 }
+      "prompt": { "messages": [{"role": "user", "content": "Merge and present: ..."}] },
+      "response": { "content": "Final teacher-friendly response...", "tokens": 2780, "cost": 0.00082 }
     }
   ]
 }

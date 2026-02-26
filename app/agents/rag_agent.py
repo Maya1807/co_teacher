@@ -59,10 +59,6 @@ class RAGAgent(BaseAgent):
         if not student_context:
             cached = await self.cache.get(query, self.MODULE_NAME)
             if cached:
-                self.add_step(
-                    prompt={"action": "cache_hit", "query": query},
-                    response={"from_cache": True}
-                )
                 return {
                     "response": cached,
                     "methods_retrieved": [],

@@ -157,17 +157,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'STUDENT_AGENT',
                 'prompt': {
-                    'action': 'get_context',
-                    'student': 'Alex'
-                },
-                'response': {
-                    'found': True,
-                    'student_id': 'STU001'
-                }
-            },
-            {
-                'module': 'STUDENT_AGENT',
-                'prompt': {
                     'action': 'extract_update_info',
                     'student': 'Alex Johnson',
                     'query_snippet': "What are Alex's sensory triggers and how should I prepare him for the fire drill today?",
@@ -291,17 +280,6 @@ PROMPT_EXAMPLES = [
                         'total': 1363
                     },
                     'cost': 0.0005113499999999999
-                }
-            },
-            {
-                'module': 'STUDENT_AGENT',
-                'prompt': {
-                    'action': 'get_context',
-                    'student': 'Jordan Smith'
-                },
-                'response': {
-                    'found': True,
-                    'student_id': 'STU002'
                 }
             },
             {
@@ -596,17 +574,6 @@ PROMPT_EXAMPLES = [
             {
                 'module': 'STUDENT_AGENT',
                 'prompt': {
-                    'action': 'get_context',
-                    'student': 'Alex'
-                },
-                'response': {
-                    'found': True,
-                    'student_id': 'STU001'
-                }
-            },
-            {
-                'module': 'STUDENT_AGENT',
-                'prompt': {
                     'action': 'extract_update_info',
                     'student': 'Alex Johnson',
                     'query_snippet': 'Alex had a meltdown during the fire drill today - loud noises really set him off',
@@ -703,8 +670,12 @@ async def get_agent_info() -> Dict[str, Any]:
             "field trips). Uses rule-based risk calculation (high/medium/low) to flag students who "
             "may struggle, then generates actionable intervention suggestions with specific timing "
             "and scripts.\n\n"
-            "The PLANNER decomposes each teacher query into a typed execution plan with dependency "
-            "ordering, minimizing unnecessary LLM calls. A PRESENTER service merges multi-agent "
+            "The PLANNER uses an LLM call to parse each teacher query into a typed, dependency-ordered "
+            "execution plan. Critically, it also extracts the student name from natural language (e.g., "
+            "'What are Alex\\'s triggers?' → student_name: 'Alex'), which drives a Supabase lookup that "
+            "pre-loads the relevant student profile before any agent runs, so every response is "
+            "personalized without agents needing to re-fetch data independently. "
+            "A PRESENTER service merges multi-agent "
             "results and applies voice transformation to ensure responses are warm, supportive, "
             "and classroom-ready — all in a single LLM call."
         ),

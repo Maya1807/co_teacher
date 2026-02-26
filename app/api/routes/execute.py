@@ -95,7 +95,8 @@ async def execute_agent(request: ExecuteRequest):
             StepInfo(
                 module=step["module"],
                 prompt=step["prompt"],
-                response=step["response"]
+                response=step["response"],
+                source=step.get("source"),
             )
             for step in tracker.get_steps()
         ]

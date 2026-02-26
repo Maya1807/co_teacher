@@ -201,10 +201,6 @@ class AdminAgent(BaseAgent):
         cache_key = f"summary_{time_period}_{date.today().isoformat()}"
         cached = await self.cache.get(cache_key, self.MODULE_NAME)
         if cached:
-            self.add_step(
-                prompt={"action": "summary_cache_hit", "period": time_period},
-                response={"from_cache": True}
-            )
             return {
                 "response": cached,
                 "document_type": "summary",

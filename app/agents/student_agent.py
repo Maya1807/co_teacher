@@ -38,8 +38,12 @@ class StudentAgent(BaseAgent):
         """
         Process a student-related query.
 
+        The planner decides the action ("query" or "update") — this agent
+        does NOT independently guess whether to update.
+
         Args:
-            input_data: Contains 'query' and optionally 'student_name' or 'student_id'
+            input_data: Contains 'prompt', 'action', and optionally
+                        'student_name', 'student_id', 'student_context'
             context: Optional context with teacher_id, session_id
 
         Returns:
@@ -49,60 +53,62 @@ class StudentAgent(BaseAgent):
         student_name = input_data.get("student_name")
         student_id = input_data.get("student_id")
         action = input_data.get("action", "query")  # query, update, list
+        original_query = input_data.get("original_query")
 
-        # Capture original_query for update detection (planner sends
-        # a specific task as "prompt" but the raw user query as
-        # "original_query" so update extraction sees the real intent).
-        self._current_original_query = input_data.get("original_query")
+        # Pre-fetched profile from orchestrator (avoids redundant DB call)
+        pre_fetched_profile = None
+        student_ctx = input_data.get("student_context")
+        if student_ctx and isinstance(student_ctx, dict):
+            pre_fetched_profile = student_ctx.get("profile")
 
         # Determine what action to take
         if action == "update":
-            return await self._handle_update(query, student_id, context)
+            return await self._handle_update(
+                query, student_id, context,
+                original_query=original_query,
+                pre_fetched_profile=pre_fetched_profile,
+            )
         elif action == "list":
             return await self._handle_list(query, context)
         else:
-            return await self._handle_query(query, student_name, student_id, context)
+            return await self._handle_query(
+                query, student_name, student_id, context,
+                pre_fetched_profile=pre_fetched_profile,
+            )
 
     async def _handle_query(
         self,
         query: str,
         student_name: Optional[str],
         student_id: Optional[str],
-        context: Optional[Dict[str, Any]]
+        context: Optional[Dict[str, Any]],
+        pre_fetched_profile: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Handle a query about a specific student."""
-        profile = None
+        """Handle a read-only query about a specific student.
 
-        # Try to find the student
-        if student_id:
-            profile = await self.memory.get_student_profile(student_id)
-        elif student_name:
-            # Search by name
-            matches = await self.memory.search_student_by_name(student_name)
-            if matches:
-                profile = matches[0]  # Take best match
+        This is a pure retrieval path — the planner already decided
+        this is action="query", so no update detection runs here.
+        """
+        profile = pre_fetched_profile
 
         if not profile:
-            # Student not found - generate helpful response
+            # Fallback: fetch from DB (e.g. direct agent calls without orchestrator)
+            if student_id:
+                profile = await self.memory.get_student_profile(student_id)
+            elif student_name:
+                matches = await self.memory.search_student_by_name(student_name)
+                if matches:
+                    profile = matches[0]
+
+            if profile:
+                pass  # profile loaded from DB; LLM step recorded below
+
+        if not profile:
             return await self._handle_not_found(query, student_name)
 
-        # Get student_id for updates
         sid = profile.get("id") or profile.get("student_id")
 
-        # Trace the DB fetch so it's visible in the step log
-        self.add_step(
-            prompt={"source": "supabase", "action": "fetch_student_profile", "student": profile.get("name")},
-            response={"found": True, "student_id": sid, "fields": ["triggers", "successful_methods", "failed_methods", "learning_style", "disability_type"]}
-        )
-
-        # Check if query contains implicit update information
-        # (e.g., "Alex had a meltdown when the bell rang")
-        # Use original_query when available so update extraction sees the
-        # teacher's raw words rather than the planner's rewritten task.
-        raw_query = getattr(self, "_current_original_query", None) or query
-        update_result = await self._extract_and_apply_updates(raw_query, profile, sid)
-
-        # Get daily context if teacher_id available
+        # Fetch daily context if available
         daily_context = []
         if context and context.get("teacher_id"):
             daily_context = await self.memory.get_daily_context(
@@ -110,35 +116,8 @@ class StudentAgent(BaseAgent):
                 student_id=sid
             )
 
-        # Use updated profile if updates were applied
-        current_profile = update_result.get("updated_profile", profile)
-
-        # If updates were applied, just return the confirmation without full profile dump
-        # The orchestrator will handle any additional context needed
-        if update_result.get("action_taken") == "update_applied":
-            return {
-                "response": update_result["response"],
-                "student_profile": current_profile,
-                "action_taken": "update_applied",
-                "student_id": sid,
-                "student_name": current_profile.get("name"),
-                "updates_applied": update_result.get("updates_applied")
-            }
-
-        # If items already exist in profile, return the helpful message
-        if update_result.get("action_taken") == "already_exists":
-            return {
-                "response": update_result["response"],
-                "student_profile": current_profile,
-                "action_taken": "already_exists",
-                "student_id": sid,
-                "student_name": current_profile.get("name"),
-                "updates_applied": None
-            }
-
-        # No updates - generate response about the student
         prompt = STUDENT_AGENT_PROFILE_PROMPT.format(
-            profile=format_student_profile(current_profile),
+            profile=format_student_profile(profile),
             query=query,
             daily_context=format_daily_context(daily_context)
         )
@@ -150,7 +129,7 @@ class StudentAgent(BaseAgent):
             ],
             prompt_summary={
                 "action": "profile_query",
-                "student": current_profile.get("name", "Unknown"),
+                "student": profile.get("name", "Unknown"),
                 "query_snippet": query
             },
             temperature=0.7,
@@ -158,10 +137,10 @@ class StudentAgent(BaseAgent):
 
         return {
             "response": response,
-            "student_profile": current_profile,
+            "student_profile": profile,
             "action_taken": "profile_retrieved",
             "student_id": sid,
-            "student_name": current_profile.get("name"),
+            "student_name": profile.get("name"),
             "updates_applied": None
         }
 
@@ -199,9 +178,11 @@ class StudentAgent(BaseAgent):
         self,
         query: str,
         student_id: Optional[str],
-        context: Optional[Dict[str, Any]]
+        context: Optional[Dict[str, Any]],
+        original_query: Optional[str] = None,
+        pre_fetched_profile: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Handle a student profile update request."""
+        """Handle a student profile update request (planner action='update')."""
         if not student_id:
             return {
                 "response": "I need to know which student to update. Please specify the student name.",
@@ -209,7 +190,9 @@ class StudentAgent(BaseAgent):
                 "error": "no_student_id"
             }
 
-        profile = await self.memory.get_student_profile(student_id)
+        profile = pre_fetched_profile
+        if not profile:
+            profile = await self.memory.get_student_profile(student_id)
         if not profile:
             return {
                 "response": f"I couldn't find a student with ID {student_id}.",
@@ -217,8 +200,11 @@ class StudentAgent(BaseAgent):
                 "error": "student_not_found"
             }
 
-        # Use LLM to extract structured update data
-        update_result = await self._extract_and_apply_updates(query, profile, student_id)
+        # Use original_query so update extraction sees the teacher's raw
+        # words rather than the planner's rewritten task.
+        raw_query = original_query or query
+
+        update_result = await self._extract_and_apply_updates(raw_query, profile, student_id)
 
         return {
             "response": update_result["response"],
@@ -471,12 +457,6 @@ class StudentAgent(BaseAgent):
 
         # Get student_id - Supabase uses 'id', Pinecone may use 'student_id'
         student_id_value = profile.get("id") or profile.get("student_id")
-
-        # Trace the pre-execution profile lookup
-        self.add_step(
-            prompt={"source": "supabase", "action": "resolve_student_identity", "student": student_name or student_id},
-            response={"found": True, "student_id": student_id_value, "name": profile.get("name")}
-        )
 
         return {
             "student_id": student_id_value,

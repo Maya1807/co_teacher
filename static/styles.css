@@ -651,52 +651,6 @@ body {
     font-family: 'Playpen Sans', cursive;
 }
 
-/* New Chat Button */
-.new-chat-btn {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    background: white;
-    border: 2px solid var(--primary);
-    border-radius: var(--radius);
-    color: var(--primary);
-    font-size: 0.875rem;
-    font-family: 'Playpen Sans', cursive;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: var(--shadow);
-}
-
-.new-chat-btn:hover {
-    background: var(--primary);
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(127, 194, 212, 0.3);
-}
-
-.new-chat-btn svg {
-    flex-shrink: 0;
-}
-
-@media (max-width: 768px) {
-    .new-chat-btn {
-        top: 12px;
-        right: 12px;
-        padding: 8px 12px;
-        font-size: 0.8125rem;
-    }
-
-    .new-chat-btn span {
-        display: none;
-    }
-}
-
 /* Left sidebar specific styles */
 .left-sidebar {
     left: -100%;
@@ -1574,6 +1528,12 @@ body {
     background: #E3F2FD;
     color: #1565C0;
     border: 1px solid #90CAF9;
+}
+
+.step-badge.auto {
+    background: #FFF3E0;
+    color: #E65100;
+    border: 1px solid #FFCC80;
 }
 
 .chevron {

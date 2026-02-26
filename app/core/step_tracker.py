@@ -18,7 +18,7 @@ VALID_MODULES = [
 
 @dataclass
 class Step:
-    """Represents a single execution step."""
+    """Represents a single execution step (LLM calls only)."""
     module: str
     prompt: Dict[str, Any]
     response: Dict[str, Any]
@@ -35,7 +35,7 @@ class Step:
         return {
             "module": self.module,
             "prompt": self.prompt,
-            "response": self.response
+            "response": self.response,
         }
 
 
@@ -52,15 +52,15 @@ class StepTracker:
         self,
         module: str,
         prompt: Dict[str, Any],
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> None:
         """
-        Add a new execution step.
+        Add a new LLM execution step.
 
         Args:
             module: Module name (must be in VALID_MODULES)
-            prompt: The prompt/input sent to the module
-            response: The response received from the module
+            prompt: The prompt/input sent to the LLM
+            response: The response received from the LLM
         """
         step = Step(module=module, prompt=prompt, response=response)
         self._steps.append(step)

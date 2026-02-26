@@ -158,6 +158,7 @@ class PlanExecutor:
         input_data: Dict[str, Any] = {
             "prompt": task,
             "original_query": plan.original_query,
+            "action": step.action,
         }
 
         if student_context:

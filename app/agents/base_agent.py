@@ -82,7 +82,7 @@ class BaseAgent(ABC):
                 "content": content if content else "(empty response)",
                 "tokens": result.get("tokens_used", 0),
                 "cost": result.get("cost", 0)
-            }
+            },
         )
 
         return content
@@ -107,7 +107,7 @@ class BaseAgent(ABC):
         self.tracker.add_step(
             module=self.MODULE_NAME,
             prompt={"messages": messages},
-            response=response_summary
+            response=response_summary,
         )
 
         return result.get("content") or ""
@@ -115,13 +115,13 @@ class BaseAgent(ABC):
     def add_step(
         self,
         prompt: Dict[str, Any],
-        response: Dict[str, Any]
+        response: Dict[str, Any],
     ) -> None:
-        """Manually add a step (for non-LLM operations)."""
+        """Manually add an LLM step to the tracker."""
         self.tracker.add_step(
             module=self.MODULE_NAME,
             prompt=prompt,
-            response=response
+            response=response,
         )
 
     def get_system_prompt(self) -> str:

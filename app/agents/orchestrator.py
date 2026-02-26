@@ -222,7 +222,7 @@ class Orchestrator(BaseAgent):
                 student_name=student_name
             )
 
-        # --- 6. Execute the plan ---
+            # --- 6. Execute the plan ---
         result = await self.plan_executor.execute(
             plan=plan,
             student_context=student_context,
@@ -251,6 +251,7 @@ class Orchestrator(BaseAgent):
                     {
                         "step_index": s.step_index,
                         "agent": s.agent.value,
+                        "action": s.action,
                         "task": s.task,
                         "depends_on": s.depends_on,
                     }

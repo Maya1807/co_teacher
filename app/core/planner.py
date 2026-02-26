@@ -19,6 +19,7 @@ class PlanStep:
     step_index: int
     agent: AgentType
     task: str
+    action: str = "query"  # "query" or "update"
     depends_on: List[int] = field(default_factory=list)
     result: Optional[Dict[str, Any]] = None
 
@@ -179,6 +180,7 @@ class LLMPlanner:
                     step_index=step_index,
                     agent=_AGENT_NAME_MAP[agent_str],
                     task=raw["task"],
+                    action=raw.get("action", "query"),
                     depends_on=depends_on,
                 )
             )

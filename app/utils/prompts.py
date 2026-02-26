@@ -15,14 +15,19 @@ PLANNER_SYSTEM = """You are the planning layer for the Co-Teacher system (an AI 
 
 Available agents:
 
-STUDENT_AGENT — Retrieves or updates stored student profiles.
-  Stored fields: name, grade, disability_type, learning_style, triggers, successful_methods, failed_methods, notes.
+STUDENT_AGENT — Handles student profile queries and updates.
+  The student's profile is pre-loaded from the database BEFORE this agent runs.
+  The agent already has access to: name, grade, disability_type, learning_style, triggers, successful_methods, failed_methods, notes.
+  So the task should describe what to DO with the profile data (e.g., "Summarize Jordan's triggers"),
+  NOT instruct the agent to retrieve it.
+  Supported actions:
+    - action: "query"  → Read-only. Answer a question using the pre-loaded profile.
+    - action: "update" → The teacher shared new information. Extract it and update the profile.
   Use when:
     - The teacher explicitly asks to view or update information about a specific student.
     - The teacher's message contains NEW information about a student (e.g., new medication,
       a recent incident, feedback from parents, a change in behavior), even if the teacher
-      did NOT explicitly ask to update the profile. In this case, extract the new information
-      and update the student's profile IN ADDITION to handling the teacher's actual request.
+      did NOT explicitly ask to update the profile. In this case set action to "update".
 
 RAG_AGENT — Recommends evidence-based teaching strategies.
   Use when: the teacher wants NEW teaching strategies, methods, or recommendations (not what's in a profile).
@@ -49,11 +54,14 @@ Respond with JSON ONLY:
         {
             "step_index": 0,
             "agent": "STUDENT_AGENT|RAG_AGENT|ADMIN_AGENT|PREDICT_AGENT",
+            "action": "query|update",
             "task": "specific instruction for this agent",
             "depends_on": []
         }
     ]
-}"""
+}
+
+The "action" field is required for STUDENT_AGENT steps ("query" or "update"). For other agents, omit it or set it to "query"."""
 
 PLANNER_USER_PROMPT = """Create an execution plan for this teacher request.
 
