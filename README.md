@@ -71,10 +71,10 @@ The system uses a **multi-agent architecture** with LLM-based planning:
 ### Optimization Strategies
 
 1. **LLM-Based Planning**: The **PLANNER** decomposes each query into the minimal set of agent calls needed — a simple "tell me about Alex" triggers only STUDENT_AGENT, while "prepare Alex for the fire drill" triggers STUDENT_AGENT then RAG_AGENT with dependency chaining
-2. **Two-Tier Response Caching**: Supabase (persistent) + in-memory (fast) cache for RAG, Admin, and Predict queries — identical or semantically similar queries return cached results without additional LLM calls
-3. **Budget Tracking**: Hard spending limit ($13) enforced with an async lock per LLM call; every call logs model, tokens, and cost to `budget_tracking` in Supabase for full auditability
-4. **Lazy Agent Initialization**: Agents, services, and memory clients are created only on first use — if a request only needs RAG_AGENT, the other agents are never instantiated
-5. **Rule-Based Risk Calculation**: PREDICT_AGENT uses deterministic trigger-event matching before calling the LLM, reducing unnecessary generation for low-risk students
+2. **In-Memory Response Caching**: RAG, Admin, and Predict responses are cached in-memory (keyed by SHA-256 hash of the exact prompt + agent type) — identical repeated queries return cached results without additional LLM calls. A Supabase-backed persistent cache layer (`response_cache` table) is also implemented in the codebase for future use
+3. **Budget Tracking**: Hard spending limit ($13) enforced before every LLM call; budget updates use an `asyncio.Lock` for thread-safe accumulation across concurrent requests; every call logs model, tokens, and cost to `budget_tracking` in Supabase for full auditability
+4. **Lazy Agent Initialization**: Agents, services, and memory clients are created only on first use via `@property` accessors — if a request only needs RAG_AGENT, the other agents are never instantiated
+5. **Rule-Based Risk Calculation**: PREDICT_AGENT uses deterministic trigger-event keyword matching (no LLM call) to compute high/medium/low risk scores for each student-event pair; the LLM is only called once at the end to synthesize the daily briefing narrative
 
 ## API Endpoints
 

@@ -88,12 +88,12 @@ ARCHITECTURE_DESCRIPTION = {
     ],
     "cost_optimizations": [
         "LLM-based planning decomposes complex queries into minimal agent calls",
-        "Two-tier response caching (Supabase + in-memory) for RAG, Admin, and Predict queries",
-        "Budget tracking with hard limits ($13 default) and async lock",
+        "In-memory response caching for RAG, Admin, and Predict queries; Supabase-backed persistent cache also implemented",
+        "Budget tracking with hard limit ($13 default); asyncio.Lock guards budget updates across concurrent requests",
         "All LLM calls logged to Supabase budget_tracking for monitoring",
-        "Lazy initialization of agents and services",
+        "Lazy initialization of agents and services via @property accessors",
         "Optional presentation layer (can skip voice transformation)",
-        "Rule-based risk calculation in PredictAgent (LLM only for detailed recommendations)"
+        "Rule-based risk calculation in PredictAgent; LLM called once for final narrative only"
     ],
     "diagram_source": "/static/architecture.mmd"
 }
